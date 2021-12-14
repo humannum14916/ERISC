@@ -1,0 +1,232 @@
+; ERSIC OS 4.0 ls Command
+!link OScode/Utils/macros.txt
+
+!defU StartUser
+
+
+; Allocate memory
+TRS @500,CWD
+TRS @600,CWD-Header
+TRS @700,CWD-DataBlock
+TRS @800,ChildHeader
+
+; Setup return pointers
+TRS ChangeProg-Pointers,$2
+TRS ChangeProg-DestPath,#0
+TRS ChangeProg-Pointers,ChangeProg-Pointer2
+!defU Incrament ChangeProg-Pointer2
+TRS ChangeProg-Pointer2,$2
+TRS ChangeProg-Params,#0
+
+TRS LoadPointers,LoadPointers2
+!defU Incrament LoadPointers2
+
+; Load the CWD
+!defU kCall 5 CWD
+
+; Get it's disk adress
+!defU kCall 8 CWD
+
+; Load the CWD header
+TRS LoadPointers,$2
+TRS #4,#0
+TRS LoadPointers2,$2
+TRS CWD-Header,#0
+!defU kCall 7 LoadPointers
+
+!defU Incrament CWD-Header
+
+LBL NextDataBlock
+
+; Load the first data block
+TRS CWD-Header,$3
+TRS LoadPointers,$2
+TRS #0,#0
+TRS LoadPointers2,$2
+TRS CWD-DataBlock,#0
+!defU kCall 7 LoadPointers
+
+; Set the data block scan pointer
+TRS CWD-DataBlock,CWD-DataBlockScan
+
+LBL NextChild
+
+; Get selected data
+TRS CWD-DataBlockScan,$1
+TRS #0,CWD-ChildIndex
+
+; Check for end (null)
+!defU Compare CWD-ChildIndex 0 Temp
+!defU cJump Temp Done
+
+; Load the child header
+TRS CWD-DataBlockScan,$3
+TRS LoadPointers,$2
+TRS #0,#0
+TRS LoadPointers2,$2
+TRS ChildHeader,#0
+!defU kCall 7 LoadPointers
+
+TRS ChildHeader,PrintName-Pointer
+
+; Print the type code
+TRS PrintName-Pointer,$1
+TRS #0,Type
+!defU Compare Type 0 Temp
+!defU cJump Temp Type-Dir
+!defU Compare Type 1 Temp
+!defU cJump Temp Type-Exe
+!defU Compare Type 2 Temp
+!defU cJump Temp Type-Txt
+LBL Type-Dir
+
+!defU kCall 0 68
+!defU kCall 0 105
+!defU kCall 0 114
+!defU kCall 0 101
+!defU kCall 0 99
+!defU kCall 0 116
+!defU kCall 0 111
+!defU kCall 0 114
+!defU kCall 0 121
+
+TRS Type-Done,PC
+LBL Type-Exe
+
+!defU kCall 0 69
+!defU kCall 0 120
+!defU kCall 0 101
+!defU kCall 0 99
+!defU kCall 0 117
+!defU kCall 0 116
+!defU kCall 0 97
+!defU kCall 0 98
+!defU kCall 0 108
+!defU kCall 0 101
+
+TRS Type-Done,PC
+LBL Type-Txt
+
+!defU kCall 0 65
+!defU kCall 0 83
+!defU kCall 0 67
+!defU kCall 0 73
+!defU kCall 0 73
+!defU kCall 0 32
+!defU kCall 0 84
+!defU kCall 0 101
+!defU kCall 0 120
+!defU kCall 0 116
+
+TRS Type-Done,PC
+LBL Type-Done
+
+!defU kCall 0 32
+!defU kCall 0 124
+!defU kCall 0 32
+
+LBL SkipDataBlocks
+
+!defU Incrament PrintName-Pointer
+
+TRS PrintName-Pointer,$1
+TRS #0,Temp
+!defU Compare Temp 0 Temp
+!defU cJump Temp BlocksSkipped
+
+TRS SkipDataBlocks,PC
+
+LBL BlocksSkipped
+
+!defU Incrament PrintName-Pointer
+
+; Print the directory name
+LBL PrintName-NextChar
+
+; Get the current charactar
+TRS PrintName-Pointer,$1
+TRS #0,PrintName-CurrentChar
+
+; Check for end (null)
+TRS PrintName-CurrentChar,ALU-A
+TRS 0,ALU-B
+TRS 2,ALU-C ; Set mode(compare)
+
+!defU cJump ALU-O PrintName-End
+
+; Print it
+!defU kCall 0 PrintName-CurrentChar
+
+; Incrament the pointer
+!defU Incrament PrintName-Pointer
+
+; Loop
+TRS PrintName-NextChar,PC
+
+; End
+LBL PrintName-End
+
+; Add a newline
+!defU kCall 0 10
+
+; Update pointer
+!defU Incrament CWD-DataBlockScan
+
+; Check for end of block
+TRS CWD-DataBlockScan,ALU-A
+TRS CWD-DataBlock,ALU-B
+TRS 32,ALU-C ; Set mode (subtract)
+TRS ALU-O,Temp
+!defU Compare Temp 256 Temp
+!defU cJump Temp NextDataBlock
+
+; Loop
+TRS NextChild,PC
+
+LBL NextDataBlock
+
+; Update pointers
+!defU Incrament CWD-Header
+TRS 0,CWD-DataBlockScan
+
+; Check for end (null)
+TRS CWD-Header,$1
+TRS #0,Temp
+!defU Compare Temp 0 Temp
+!defU cJump Temp Done
+
+TRS NextDataBlock,PC
+
+LBL Done
+
+; Return to the shell
+!defU kCall 3 ChangeProg-Pointers
+
+
+; Ignore character input
+LBL INTERRUPT
+!defU kCall 1 0
+TRS INTERRUPT,PC
+
+
+; LoadFile pointers
+LBL LoadPointers
+TRS #0,#0
+
+; Program change info
+LBL ChangeProg-Pointers
+TRS #0,#0
+
+LBL ChangeProg-DestPath
+; /Programs/shell
+TRS #47,#80
+TRS #114,#111
+TRS #103,#114
+TRS #97,#109
+TRS #115,#47
+TRS #115,#104
+TRS #101,#108
+TRS #108,#0
+
+LBL ChangeProg-Params
+TRS #0,#0

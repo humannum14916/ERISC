@@ -1,0 +1,41 @@
+; ERISC 4.0 Boot ROM
+
+; Jump away (minimise wasted space)
+TRS start,PC
+
+; Load the kernel
+LBL load
+TRS 0,HD-TRS
+
+; setup to load the kernel
+LBL start
+TRS 1,LCD ; status update (working);
+TRS 0,HD-SH
+TRS 0,HD-SL
+TRS 1792,HD-TL ; KERNEL-LENGTH
+TRS 0,HD-WS
+
+; Print
+; Loading kernel...
+TRS 76,TTY
+TRS 111,TTY
+TRS 97,TTY
+TRS 100,TTY
+TRS 105,TTY
+TRS 110,TTY
+TRS 103,TTY
+TRS 32,TTY
+TRS 107,TTY
+TRS 101,TTY
+TRS 114,TTY
+TRS 110,TTY
+TRS 101,TTY
+TRS 108,TTY
+TRS 46,TTY
+TRS 46,TTY
+TRS 46,TTY
+TRS 10,TTY
+
+; Initiate the load
+TRS 3,LCD ; status update(loading program)
+TRS load,PC

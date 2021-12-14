@@ -1,0 +1,154 @@
+; ERSIC OS 4.0 cd Command
+!link OScode/Utils/macros.txt
+
+!defU StartUser
+
+
+; Allocate memory
+TRS @200,CWD
+TRS @300,Param
+
+; Setup return pointers
+TRS ChangeProg-Pointers,$2
+TRS ChangeProg-DestPath,#0
+TRS ChangeProg-Pointers,ChangeProg-Pointer2
+!defU Incrament ChangeProg-Pointer2
+TRS ChangeProg-Pointer2,$2
+TRS ChangeProg-Params,#0
+
+
+; Load the CWD
+!defU kCall 5 CWD
+
+; Load the parameter
+!defU kCall 4 Param
+
+TRS CWD,CWD-End
+
+; Find end loop
+LBL FindEnd-Back
+
+; Incrament the end pointer
+!defU Incrament CWD-End
+
+; Check if null
+TRS CWD-End,$1
+TRS #0,Temp
+!defU Compare Temp 0 Temp
+!defU cJump Temp EndFound
+
+; Loop
+TRS FindEnd-Back,PC
+
+LBL EndFound
+
+; Check if .
+TRS Param,ParamScan
+TRS ParamScan,$1
+TRS #0,Temp
+!defU Compare Temp 46 Temp
+!defU cJump Temp CheckBack
+TRS AddToCWD,PC
+LBL CheckBack
+!defU Incrament ParamScan
+TRS ParamScan,$1
+TRS #0,Temp
+!defU Compare Temp 0 Temp
+!defU cJump Temp Backtrack
+LBL AddToCWD
+
+; Skip / add if in root dir
+TRS CWD-End,ALU-A
+TRS CWD,ALU-B
+TRS 32,ALU-C ; Set mode (subtract)
+TRS ALU-O,Temp
+!defU Compare Temp 1 Temp
+!defU cJump Temp AddParam
+
+; Add a /
+TRS CWD-End,$2
+TRS 47,#0
+!defU Incrament CWD-End
+
+LBL AddParam
+
+; Copy parameter to end of CWD
+TRS Param,CopyString-From
+TRS CWD-End,CopyString-To
+!defU callF CopyString
+
+TRS Done,PC
+
+; Backtrack loop
+LBL Backtrack
+
+; Decrament the pointer
+TRS CWD-End,ALU-A
+TRS 1,ALU-B
+TRS 32,ALU-C ; Set mode (subtract)
+TRS ALU-O,CWD-End
+
+; Check if /
+TRS CWD-End,$1
+TRS #0,Temp
+!defU Compare Temp 47 Temp
+!defU cJump Temp Backtrack-Done
+
+; Loop
+TRS Backtrack,PC
+
+LBL Backtrack-Done
+
+; Check if in root dir
+TRS CWD-End,ALU-A
+TRS CWD,ALU-B
+TRS 1,ALU-C ; Set mode (subtract)
+TRS ALU-O,Temp
+!defU Compare Temp 0 Temp
+!defU cJump Temp Backtrack-InRoot
+TRS Backtrack-CutString,PC
+LBL Backtrack-InRoot
+
+!defU Incrament CWD-End
+
+LBL Backtrack-CutString
+
+; Insert the null
+TRS CWD-End,$2
+TRS 0,#0
+
+LBL Done
+
+; Store CWD
+!defU kCall 6 CWD
+
+; Return to the shell
+!defU kCall 3 ChangeProg-Pointers
+
+
+!link OScode/Utils/copyString.txt
+
+
+; Ignore character input
+LBL INTERRUPT
+!defU kCall 1 0
+TRS INTERRUPT,PC
+
+
+; Program change info
+LBL ChangeProg-Pointers
+TRS #0,#0
+
+LBL ChangeProg-DestPath
+; /Programs/shell
+TRS #47,#80
+TRS #114,#111
+TRS #103,#114
+TRS #97,#109
+TRS #115,#47
+TRS #115,#104
+TRS #101,#108
+TRS #108,#0
+
+LBL ChangeProg-Params
+TRS #0,#0

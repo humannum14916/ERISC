@@ -1,0 +1,131 @@
+; ERSIC OS 4.0 help Command
+!link OScode/Utils/macros.txt
+
+!defU StartUser
+
+
+; Allocate memory
+TRS @200,Target-Header
+TRS @300,Target-DataBlock
+TRS @400,ChildHeader
+
+; Setup return pointers
+TRS ChangeProg-Pointers,$2
+TRS ChangeProg-DestPath,#0
+TRS ChangeProg-Pointers,ChangeProg-Pointer2
+!defU Incrament ChangeProg-Pointer2
+TRS ChangeProg-Pointer2,$2
+TRS ChangeProg-Params,#0
+
+TRS LoadPointers,LoadPointers2
+!defU Incrament LoadPointers2
+
+
+; Get the file's disk adress
+!defU kCall 8 Target
+
+; Load the target header
+TRS LoadPointers,$2
+TRS #4,#0
+TRS LoadPointers2,$2
+TRS Target-Header,#0
+!defU kCall 7 LoadPointers
+
+!defU Incrament Target-Header
+
+LBL NextDataBlock
+
+; Load the data block
+TRS Target-Header,$3
+TRS LoadPointers,$2
+TRS #0,#0
+TRS LoadPointers2,$2
+TRS Target-DataBlock,#0
+!defU kCall 7 LoadPointers
+
+TRS Target-DataBlock,Print-Pointer
+
+; Print the data block contents
+LBL Print-NextChar
+
+; Get the current charactar
+TRS Print-Pointer,$1
+TRS #0,Print-CurrentChar
+
+; Check for end (null)
+TRS Print-CurrentChar,ALU-A
+TRS 0,ALU-B
+TRS 2,ALU-C ; Set mode(compare)
+
+!defU cJump ALU-O Print-End
+
+; Print it
+!defU kCall 0 Print-CurrentChar
+
+; Incrament the pointer
+!defU Incrament Print-Pointer
+
+; Loop
+TRS Print-NextChar,PC
+
+; End
+LBL Print-End
+
+; Update pointers
+!defU Incrament Target-Header
+TRS 0,Target-DataBlockScan
+
+; Check for end (null)
+TRS Target-Header,$1
+TRS #0,Temp
+!defU Compare Temp 0 Temp
+!defU cJump Temp Done
+
+TRS NextDataBlock,PC
+
+LBL Done
+
+; Add a newline
+!defU kCall 0 10
+
+; Return to the shell
+!defU kCall 3 ChangeProg-Pointers
+
+
+; Ignore character input
+LBL INTERRUPT
+!defU kCall 1 0
+TRS INTERRUPT,PC
+
+
+; LoadFile pointers
+LBL LoadPointers
+TRS #0,#0
+
+; Program change info
+LBL ChangeProg-Pointers
+TRS #0,#0
+
+LBL ChangeProg-DestPath
+; /Programs/shell
+TRS #47,#80
+TRS #114,#111
+TRS #103,#114
+TRS #97,#109
+TRS #115,#47
+TRS #115,#104
+TRS #101,#108
+TRS #108,#0
+
+LBL ChangeProg-Params
+TRS #0,#0
+
+LBL Target
+TRS #47,#76
+TRS #105,#98
+TRS #47,#104
+TRS #101,#108
+TRS #112,#45
+TRS #116,#101
+TRS #120,#116
+TRS #0,#0

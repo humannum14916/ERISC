@@ -1,0 +1,198 @@
+; ERSIC OS 4.0 Command Line
+!link OScode/Utils/macros.txt
+
+!defU StartUser
+
+
+; CWD
+TRS @200,CWD
+
+; Command info (name and parameter)
+TRS @300,CommandInfoHead
+
+; Setup vars
+TRS CommandInfoHead,CommandName
+TRS Interrupt-HandleChar,Interrupt-Handler
+TRS Interrupt-StoreChar-Name,Interrupt-StoreChar
+
+; Copy the command path start
+TRS ProgramPath,CopyString-From
+TRS CommandInfoHead,CopyString-To
+!defU callF CopyString
+TRS CopyString-To,ALU-A
+TRS 1,ALU-B
+TRS 32,ALU-C ; Set mode (subtract)
+TRS ALU-O,CommandInfoHead
+
+; Load the CWD string
+!defU kCall 5 CWD
+
+; Print it
+TRS CWD,PCWD-ToPrint
+LBL PCWD-NextChar
+
+; Get the current charactar
+TRS PCWD-ToPrint,$1
+TRS #0,PCWD-CurrentChar
+
+; Check for end (null)
+TRS PCWD-CurrentChar,ALU-A
+TRS 0,ALU-B
+TRS 2,ALU-C ; Set mode(compare)
+
+!defU cJump ALU-O PCWD-End
+
+; Print it
+!defU kCall 0 PCWD-CurrentChar
+
+; Incrament the pointer
+!defU Incrament PCWD-ToPrint
+
+; Loop
+TRS PCWD-NextChar,PC
+
+; End
+LBL PCWD-End
+
+; Print the command prompt ( > )
+!defU kCall 0 32
+!defU kCall 0 62
+!defU kCall 0 32
+
+; Wait for input
+TRS 2,LCD
+LBL AwaitInput
+TRS AwaitInput,PC
+
+LBL LoadNext
+
+; Finish param string
+TRS CommandInfoHead,$2
+TRS 0,#0
+
+; Load the next program
+!defU kCall 3 ChangeProg-Pointers
+
+; Interrupt handler
+LBL INTERRUPT
+
+TRS Interrupt-Handler,PC
+
+; Not storing characters, trash them
+LBL Interrupt-TrashChar
+!defU kCall 1 0
+TRS Interrupt-TrashChar,PC
+
+; Store the character
+LBL Interrupt-HandleChar
+
+; Read character
+!defU kCall 2 0
+TRS #4,kCall-Return
+
+; Echo to TTY
+!defU kCall 0 kCall-Return
+
+; Check if it is a \n
+!defU Compare kCall-Return 10 Interrupt-Temp
+!defU cJump Interrupt-Temp Interrupt-DoneStart
+
+; Handle char storage
+TRS Interrupt-StoreChar,PC
+
+; Command name char storage
+LBL Interrupt-StoreChar-Name
+; Check for space
+!defU Compare kCall-Return 32 Interrupt-Temp
+!defU cJump Interrupt-Temp Interrupt-StoreChar-Name-IsSpace
+
+; Not space, store and end
+TRS CommandInfoHead,$2
+TRS kCall-Return,#0
+
+; don't forget to inc the pointer
+!defU Incrament CommandInfoHead
+
+TRS Interrupt-End,PC
+
+LBL Interrupt-StoreChar-Name-IsSpace
+
+; Is space, store null, init params pointer
+TRS CommandInfoHead,$2
+TRS 0,#0
+!defU Incrament CommandInfoHead
+
+TRS CommandInfoHead,CommandParams
+
+; And pass control to the command param handler
+TRS Interrupt-StoreChar-Params,Interrupt-StoreChar
+
+TRS Interrupt-End,PC
+
+; Command params char storage
+LBL Interrupt-StoreChar-Params
+
+; Write the character
+TRS CommandInfoHead,$2
+TRS kCall-Return,#0
+
+; Inc the pointer
+!defU Incrament CommandInfoHead
+
+TRS Interrupt-End,PC
+
+; Newline handler
+LBL Interrupt-DoneStart
+
+; Check if the command parameters string is set
+!defU Compare CommandParams 0 Interrupt-Temp
+!defU cJump Interrupt-Temp Interrupt-SetParams
+TRS Interrupt-DoneEnd,PC
+LBL Interrupt-SetParams
+
+; Point the command parameter string to start
+; at null (the end of the command name string)
+TRS CommandInfoHead,CommandParams
+
+LBL Interrupt-DoneEnd
+
+; Disable character storage
+TRS Interrupt-TrashChar,Interrupt-Handler
+
+; Setup the pointers for changing programs
+TRS ChangeProg-Pointers,$2
+TRS CommandName,#0
+
+TRS ChangeProg-Pointers,ChangeProg-Params
+!defU Incrament ChangeProg-Params
+TRS ChangeProg-Params,$2
+TRS CommandParams,#0
+
+; And tell the main program to load it
+TRS LoadNext,AwaitInput
+
+LBL Interrupt-End
+
+; Clear character
+!defU kCall 1 0
+
+; Loop
+TRS INTERRUPT,PC
+
+
+!link OScode/Utils/copyString.txt
+
+
+; Program path start
+; /Programs/
+LBL ProgramPath
+TRS #47,#80
+TRS #114,#111
+TRS #103,#114
+TRS #97,#109
+TRS #115,#47
+TRS #0,#0
+
+; Change program kernel function pointer passing
+LBL ChangeProg-Pointers
+TRS #0,#0

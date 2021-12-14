@@ -1,0 +1,605 @@
+; ERISC 4.0 Kernel
+!link OScode/Utils/macros.txt
+
+; Protected mode return
+TRS KernelFunctionCalled,PC
+
+; Spacer
+TRS #0,#0
+
+TRS 1,LCD ; Status update (working)
+
+; Used memory:
+; REMEMBER TO UPDATE BOOT ROM, ROOT-HEADER-INDEX,
+;   KM CONSTS, AND FREEMEM CONST
+; @0   - Kernel code
+; @100 - Kernel code
+; @200 - Kernel code
+; @300 - Kernel code
+; @400 - Kernel code
+; @500 - Kernel code
+; @600 - Kernel code
+; @700 - KM-0
+; @800 - KM-1
+; @900 - KM-2
+; @a00 - KM-3
+; @b00 - KM-4
+
+; Assign general memory adresses
+TRS @700,KM-0
+TRS @800,KM-1
+TRS @900,KM-2
+TRS @a00,KM-3
+TRS @b00,KM-4
+
+; General memory:
+; KM-0 - EvalPath-DirHeader
+;          LoadFile-Header
+; KM-1 - EvalPath-DirDataBlock
+; KM-2 - EvalPath-DirChildFile
+; KM-3 - Program parameters
+; KM-4 - Current working directory string
+
+; Assign general memory
+TRS KM-0,EvalPath-DirHeader
+TRS KM-0,LoadFile-Header
+TRS KM-1,EvalPath-DirDataBlock
+TRS KM-2,EvalPath-DirChildFile
+TRS KM-3,KFC-ChangeProg-ParamString
+TRS KM-4,CWD
+
+; Constants
+TRS @700,ROOT-HEADER-INDEX
+TRS @c00,FREEMEM
+
+; Set CWD
+TRS CWD,$2
+TRS 47,#0
+
+
+; Print the intro message
+TRS StartupMessage,PrintString-Pointer
+!defU callF PrintString
+
+; Find the initial program
+TRS Initial-Program-Path,EvalPath-Path
+!defU callF EvalPath
+
+; Load it
+TRS EvalPath-Result,LoadFile-HeaderAdr
+TRS FREEMEM,LoadFile-LoadTo
+!defU callF LoadFile
+
+; Enable interrupts
+TRS KernelInterrupt,PC2
+
+; and run it
+!defU EnterUser FREEMEM
+
+
+; Kernel function call handler
+LBL KernelFunctionCalled
+
+; Get function id and parameter
+TRS ALU-A,KFC-id
+TRS ALU-B,KFC-parameter
+
+TRS 0,KFC-RestoreInterruptFlag
+
+; Check for interrupt
+!defU cJump KFC-InInterrupt KFC-Isetup
+TRS KFC-IsetupSkip,PC
+LBL KFC-Isetup
+
+; Restore the return adress
+TRS EnterUser-LastStart,ALU-A
+TRS 2,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,$1
+TRS #0,KFC-IReturn
+TRS ALU-O,$2
+TRS KFC-MainReturn,#0
+
+; Reset the interrupt flag
+TRS 1,KFC-RestoreInterruptFlag
+TRS 0,KFC-InInterrupt
+
+LBL KFC-IsetupSkip
+
+; Reset the return value
+TRS 0,KFC-Return
+
+; Find selected function
+!defU Compare KFC-id 0 KFC-Temp
+!defU cJump KFC-Temp KFC-PrintChar
+!defU Compare KFC-id 1 KFC-Temp
+!defU cJump KFC-Temp KFC-ClearChar
+!defU Compare KFC-id 2 KFC-Temp
+!defU cJump KFC-Temp KFC-ReadChar
+!defU Compare KFC-id 3 KFC-Temp
+!defU cJump KFC-Temp KFC-ChangeProg
+!defU Compare KFC-id 4 KFC-Temp
+!defU cJump KFC-Temp KFC-LoadParams
+!defU Compare KFC-id 5 KFC-Temp
+!defU cJump KFC-Temp KFC-LoadCWD
+!defU Compare KFC-id 6 KFC-Temp
+!defU cJump KFC-Temp KFC-UpdateCWD
+!defU Compare KFC-id 7 KFC-Temp
+!defU cJump KFC-Temp KFC-LoadFile
+!defU Compare KFC-id 8 KFC-Temp
+!defU cJump KFC-Temp KFC-EvalPath
+
+; Not found, error
+TRS KFC-NotFoundError,PC
+
+; PrintChar (0)
+LBL KFC-PrintChar
+TRS KFC-parameter,TTY
+TRS KFC-End,PC
+
+; ClearChar (1)
+LBL KFC-ClearChar
+TRS 0,KBD
+TRS KFC-End,PC
+
+; ReadChar (2)
+LBL KFC-ReadChar
+TRS KBD,KFC-Return
+TRS KFC-End,PC
+
+; ChangeProg (3)
+LBL KFC-ChangeProg
+
+; Calculate the pointer set adress
+TRS KFC-parameter,ALU-A
+TRS EnterUser-LastStart,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,KFC-ChangeProg-Pointers
+
+; Extract the program path pointer
+TRS KFC-ChangeProg-Pointers,$1
+TRS #0,KFC-ChangeProg-Path
+
+TRS KFC-ChangeProg-Path,ALU-A
+TRS EnterUser-LastStart,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,KFC-ChangeProg-Path
+
+; Extract the parameter pointer
+!defU Incrament KFC-ChangeProg-Pointers
+TRS KFC-ChangeProg-Pointers,$1
+TRS #0,KFC-ChangeProg-Params
+
+TRS KFC-ChangeProg-Params,ALU-A
+TRS EnterUser-LastStart,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,KFC-ChangeProg-Params
+
+; Copy the parameter string
+TRS KFC-ChangeProg-Params,CopyString-From
+TRS KFC-ChangeProg-ParamString,CopyString-To
+!defU callF CopyString
+
+; Find the selected program
+TRS KFC-ChangeProg-Path,EvalPath-Path
+!defU callF EvalPath
+
+; Load it
+TRS EvalPath-Result,LoadFile-HeaderAdr
+TRS FREEMEM,LoadFile-LoadTo
+!defU callF LoadFile
+
+; and run it
+!defU EnterUser FREEMEM
+
+TRS KFC-End,PC
+
+; LoadParams (4)
+LBL KFC-LoadParams
+
+; Correctly ofset destination
+TRS KFC-parameter,ALU-A
+TRS EnterUser-LastStart,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,KFC-parameter
+
+; Copy the parameter string
+TRS KFC-ChangeProg-ParamString,CopyString-From
+TRS KFC-parameter,CopyString-To
+!defU callF CopyString
+
+TRS KFC-End,PC
+
+; LoadCWD (5)
+LBL KFC-LoadCWD
+
+; Correctly ofset destination
+TRS KFC-parameter,ALU-A
+TRS EnterUser-LastStart,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,KFC-parameter
+
+; Copy the CWD string
+TRS CWD,CopyString-From
+TRS KFC-parameter,CopyString-To
+!defU callF CopyString
+
+TRS KFC-End,PC
+
+; UpdateCWD (6)
+LBL KFC-UpdateCWD
+
+; Correctly ofset source
+TRS KFC-parameter,ALU-A
+TRS EnterUser-LastStart,ALU-B
+TRS 0,ALU-C ; Set mode (compare)
+TRS ALU-O,KFC-parameter
+
+; Copy the CWD
+TRS KFC-parameter,CopyString-From
+TRS CWD,CopyString-To
+!defU callF CopyString
+
+TRS KFC-End,PC
+
+; LoadFile (7)
+LBL KFC-LoadFile
+
+; Calculate the pointer set adress
+TRS KFC-parameter,ALU-A
+TRS EnterUser-LastStart,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,KFC-LoadFile-Pointers
+
+; Extract the block pointer
+TRS KFC-LoadFile-Pointers,$1
+TRS #0,KFC-LoadFile-Block
+
+!defU Incrament KFC-LoadFile-Pointers
+
+; Extract the destination pointer
+TRS KFC-LoadFile-Pointers,$1
+TRS #0,ALU-A
+TRS EnterUser-LastStart,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,KFC-LoadFile-Dest
+
+; Load the block
+TRS 0,HD-SH
+TRS KFC-LoadFile-Block,HD-SL
+TRS 256,HD-TL
+TRS KFC-LoadFile-Dest,HD-WS
+
+TRS 4,LCD ; Status update (Loading data)
+TRS 0,HD-TRS
+TRS 1,LCD ; Status update (Working)
+
+TRS KFC-End,PC
+
+; EvalPath (8)
+LBL KFC-EvalPath
+
+; Correctly ofset the path pointer
+TRS KFC-parameter,ALU-A
+TRS EnterUser-LastStart,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,EvalPath-Path
+
+; Evaluate the path
+!defU callF EvalPath
+
+; Return the result
+TRS EvalPath-Result,KFC-Return
+
+TRS KFC-End,PC
+
+LBL KFC-End
+
+; Update the return value
+TRS EnterUser-LastStart,ALU-A
+TRS 4,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,$2
+TRS KFC-Return,#0
+
+; Check for interrupt (return)
+!defU cJump KFC-RestoreInterruptFlag KFC-Ifinish
+TRS KFC-IfinishSkip,PC
+LBL KFC-Ifinish
+
+; Reset the return adress
+TRS EnterUser-LastStart,ALU-A
+TRS 2,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,$2
+TRS KFC-IReturn,#0
+
+; Restore the interrupt flag
+TRS 0,KFC-RestoreInterruptFlag
+TRS 1,KFC-InInterrupt
+
+LBL KFC-IfinishSkip
+
+; Return to the user program
+!defU EnterUser EnterUser-LastStart
+
+; Errors
+!defU Error KFC-NotFoundError @fffc
+
+
+; Interrupt handler
+LBL KernelInterrupt
+
+; Set interrupt flag
+TRS 1,KFC-InInterrupt
+
+; Store the current program's return adress
+TRS EnterUser-LastStart,ALU-A
+TRS 2,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,$1
+TRS #0,KFC-MainReturn
+
+; Set it to run the interrupt handler
+TRS ALU-O,$2
+TRS 4,#0
+
+; Enter the user program
+!defU EnterUser EnterUser-LastStart
+
+
+!link OScode/Utils/copyString.txt
+
+
+; Null-terminated string printer
+; PrintString-Pointer - Pointer to the string start
+!defU defF PrintString
+
+LBL PrintString-NextChar
+
+; Get the current charactar
+TRS PrintString-Pointer,$1
+TRS #0,PrintString-CurrentChar
+
+; Check for end (null)
+TRS PrintString-CurrentChar,ALU-A
+TRS 0,ALU-B
+TRS 2,ALU-C ; Set mode(compare)
+
+!defU cJump ALU-O PrintString-End
+
+; Print it
+TRS PrintString-CurrentChar,TTY
+
+; Incrament the pointer
+!defU Incrament PrintString-Pointer
+
+; Loop
+TRS PrintString-NextChar,PC
+
+; End
+LBL PrintString-End
+
+!defU retF PrintString
+
+
+; File loader
+; LoadFile-HeaderAdr - Disk adress of the file
+;   to be loaded
+; LoadFile-LoadTo - Adress where the file should
+;   be loaded
+; LoadFile-Length - (output) - Number of words
+;   loaded
+!defU defF LoadFile
+
+; Reset the length
+TRS 0,LoadFile-Length
+
+; Load the file's header
+!defU LoadFromDisk 256 LoadFile-HeaderAdr LoadFile-Header
+
+TRS LoadFile-Header,LoadFile-DataBlockListScan
+; Skip file type code
+!defU Incrament LoadFile-DataBlockListScan
+
+LBL LoadFile-NextBlock
+
+; Check for null (end of data blocks)
+TRS LoadFile-DataBlockListScan,$1
+TRS #0,LoadFile-Temp
+!defU Compare LoadFile-Temp 0 LoadFile-Temp2
+!defU cJump LoadFile-Temp2 LoadFile-End
+
+; Load the data block
+!defU LoadFromDisk 256 LoadFile-Temp LoadFile-LoadTo
+
+; Update the pointers,
+!defU Incrament LoadFile-DataBlockListScan
+TRS LoadFile-LoadTo,ALU-A
+TRS 256,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,LoadFile-LoadTo
+
+; length,
+TRS LoadFile-Length,ALU-A
+TRS 256,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,LoadFile-Length
+
+; and loop
+TRS LoadFile-NextBlock,PC
+
+; End of data block list, done
+LBL LoadFile-End
+
+!defU retF LoadFile
+
+
+
+; Path Evaluator
+; EvalPath-Path - Pointer to null-terminated
+;   path string
+; EvalPath-Result - Disk adress of the found file
+!defU defF EvalPath
+
+; Setup
+!defU Incrament EvalPath-Path
+TRS ROOT-HEADER-INDEX,EvalPath-DirIndex
+TRS EvalPath-Path,EvalPath-PathScan
+
+; Return proper value if path == / (root dir)
+TRS EvalPath-Path,$1
+TRS #0,EvalPath-Temp
+!defU Compare EvalPath-Temp 0 EvalPath-Temp
+!defU cJump EvalPath-Temp EvalPath-Return
+
+LBL EvalPath-Main_Loop
+
+; Load the header
+!defU LoadFromDisk 256 EvalPath-DirIndex EvalPath-DirHeader
+
+; Check if it is a directory
+TRS EvalPath-DirHeader,$1
+TRS #0,EvalPath-Temp
+!defU Compare EvalPath-Temp 0 EvalPath-Temp
+TRS EvalPath-Temp,LCD
+!defU cJump EvalPath-Temp EvalPath-DontNotDirError
+TRS EvalPath-NotDirError,PC
+LBL EvalPath-DontNotDirError
+
+TRS EvalPath-DirHeader,ALU-A
+TRS 1,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS ALU-O,EvalPath-DirDataBlockIndex
+TRS EvalPath-DirDataBlock,EvalPath-DirDataBlockScan
+
+LBL EvalPath-FindLoop-Reload
+TRS EvalPath-DirDataBlockIndex,$1
+TRS #0,EvalPath-Temp
+!defU LoadFromDisk 256 EvalPath-Temp EvalPath-DirDataBlock
+
+LBL EvalPath-FindLoop-CompareSelected
+TRS EvalPath-DirDataBlockScan,$1
+TRS #0,EvalPath-Temp
+!defU LoadFromDisk 256 EvalPath-Temp EvalPath-DirChildFile
+
+LBL EvalPath-NextTest
+TRS EvalPath-DirChildFile,EvalPath-DirContentsNameScan
+!defU Incrament EvalPath-DirContentsNameScan
+LBL EvalPath-GetName-Next
+TRS EvalPath-DirContentsNameScan,$1
+TRS #0,EvalPath-Temp
+!defU Compare EvalPath-Temp 0 EvalPath-Temp
+!defU cJump EvalPath-Temp EvalPath-GetName-Found
+!defU Incrament EvalPath-DirContentsNameScan
+TRS EvalPath-GetName-Next,PC
+LBL EvalPath-GetName-Found
+!defU Incrament EvalPath-DirContentsNameScan
+;TRS EvalPath-DirContentsNameScan,PrintString-Pointer
+;TRS 10,TTY
+;!defU callF PrintString
+
+TRS EvalPath-PathScan,EvalPath-PathComponentScan
+LBL EvalPath-FindLoop-CompareChar
+TRS EvalPath-DirContentsNameScan,$1
+TRS #0,EvalPath-Temp
+!defU Compare EvalPath-Temp 0 EvalPath-Temp2
+!defU cJump EvalPath-Temp2 EvalPath-NameEnd
+TRS EvalPath-PathComponentScan,$1
+TRS #0,EvalPath-Temp2
+!defU Compare EvalPath-Temp EvalPath-Temp2 EvalPath-Temp
+!defU cJump EvalPath-Temp EvalPath-CharsMatch
+TRS EvalPath-MatchFail,PC
+LBL EvalPath-CharsMatch
+!defU Incrament EvalPath-DirContentsNameScan
+!defU Incrament EvalPath-PathComponentScan
+TRS EvalPath-FindLoop-CompareChar,PC
+LBL EvalPath-NameEnd
+TRS EvalPath-PathComponentScan,$1
+TRS #0,EvalPath-Temp2
+!defU Compare EvalPath-Temp2 0 EvalPath-Temp
+!defU cJump EvalPath-Temp EvalPath-MatchFound
+!defU Compare EvalPath-Temp2 47 EvalPath-Temp
+!defU cJump EvalPath-Temp EvalPath-MatchFound
+
+LBL EvalPath-MatchFail
+!defU Incrament EvalPath-DirDataBlockScan
+TRS EvalPath-DirDataBlockScan,$1
+TRS #0,ALU-A
+TRS 0,ALU-B
+TRS 2,ALU-C ; Set mode (compare)
+!defU cJump ALU-O EvalPath-NotFoundError
+TRS EvalPath-DirDataBlockScan,ALU-A
+TRS EvalPath-DirDataBlock,ALU-B
+TRS 32,ALU-C ; Set mode (subtract)
+TRS ALU-O,ALU-B
+TRS 256,ALU-A
+TRS 1,ALU-C ; Set mode (A > B)
+!defU cJump ALU-O EvalPath-FindLoop-CompareSelected
+TRS 0,EvalPath-DirDataBlockScan
+!defU Incrament DirDataBlockIndex
+TRS DirDataBlockIndex,$1
+TRS #0,ALU-A
+TRS 0,ALU-B
+TRS 2,ALU-C ; Set mode (compare)
+!defU cJump ALU-O EvalPath-NotFoundError
+TRS EvalPath-FindLoop-Reload,PC
+
+LBL EvalPath-MatchFound
+TRS EvalPath-DirDataBlockScan,$1
+TRS #0,EvalPath-DirIndex
+TRS EvalPath-PathComponentScan,EvalPath-PathScan
+TRS EvalPath-PathScan,$1
+TRS #0,EvalPath-Temp
+!defU Compare EvalPath-Temp 0 EvalPath-Temp
+!defU cJump EvalPath-Temp EvalPath-Return
+!defU Incrament EvalPath-PathScan
+TRS EvalPath-Main_Loop,PC
+
+LBL EvalPath-Return
+TRS EvalPath-DirIndex,EvalPath-Result
+
+!defU retF EvalPath
+!defU Error EvalPath-NotDirError @fffe
+!defU Error EvalPath-NotFoundError @fffd
+
+
+; Initial program path
+; /Programs/shell
+LBL Initial-Program-Path
+TRS #47,#80
+TRS #114,#111
+TRS #103,#114
+TRS #97,#109
+TRS #115,#47
+TRS #115,#104
+TRS #101,#108
+TRS #108,#0
+
+; Startup message
+; Welcome to ERISC OS 4.0
+; Run "help" for help\n\n
+LBL StartupMessage
+TRS #87,#101
+TRS #108,#99
+TRS #111,#109
+TRS #101,#32
+TRS #116,#111
+TRS #32,#69
+TRS #82,#73
+TRS #83,#67
+TRS #32,#79
+TRS #83,#32
+TRS #52,#46
+TRS #48,#10
+TRS #82,#117
+TRS #110,#32
+TRS #34,#104
+TRS #101,#108
+TRS #112,#34
+TRS #32,#102
+TRS #111,#114
+TRS #32,#104
+TRS #101,#108
+TRS #112,#10
+TRS #10,#0

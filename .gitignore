@@ -1,0 +1,5 @@
+#ignore compiled C++ emulators
+**/tools/emulate
+
+#and the .replit file
+.replit
