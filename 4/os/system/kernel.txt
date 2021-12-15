@@ -1,5 +1,5 @@
 ; ERISC 4.0 Kernel
-!link OScode/Utils/macros.txt
+!link utils/macros.txt
 
 ; Protected mode return
 TRS KernelFunctionCalled,PC
@@ -348,7 +348,7 @@ TRS 4,#0
 !defU EnterUser EnterUser-LastStart
 
 
-!link OScode/Utils/copyString.txt
+!link utils/copyString.txt
 
 
 ; Null-terminated string printer

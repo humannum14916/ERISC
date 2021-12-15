@@ -1,5 +1,5 @@
 ; ERISC 4.0 String copier function
-; Must have OScode/Utils/macros.txt linked
+; Must have utils/macros.txt linked
 ; Not linked here to avoid it being linked twice
 
 

@@ -1,5 +1,5 @@
 ; ERSIC OS 4.0 Command Line
-!link OScode/Utils/macros.txt
+!link utils/macros.txt
 
 !defU StartUser
 
@@ -180,7 +180,7 @@ LBL Interrupt-End
 TRS INTERRUPT,PC
 
 
-!link OScode/Utils/copyString.txt
+!link utils/copyString.txt
 
 
 ; Program path start

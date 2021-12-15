@@ -1,5 +1,5 @@
 ; ERSIC OS 4.0 cd Command
-!link OScode/Utils/macros.txt
+!link utils/macros.txt
 
 !defU StartUser
 
@@ -126,7 +126,7 @@ LBL Done
 !defU kCall 3 ChangeProg-Pointers
 
 
-!link OScode/Utils/copyString.txt
+!link utils/copyString.txt
 
 
 ; Ignore character input

@@ -1,5 +1,5 @@
 ; ERSIC OS 4.0 cat Command
-!link OScode/Utils/macros.txt
+!link utils/macros.txt
 
 !defU StartUser
 
