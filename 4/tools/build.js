@@ -2,7 +2,7 @@
 const asciiConvert = require("./ASCIIconvert.js");
 const compiler = require("./assembler.js");
 const fsGen = require("./FSgen.js");
-const emulate = require("./emulate.js");
+//const emulate = require("./emulate.js");
 const compilerBase = require("./ERISCassembler.js");
 
 //wrapper functions
