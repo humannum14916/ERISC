@@ -767,7 +767,7 @@ string numToString(unsigned int n){
 int main(){
 
   log("Loading files");
-  ifstream romFile ("./images/bootRom");
+  ifstream romFile ("../images/bootRom");
   unsigned int writeTo = 0;
   string data;
   romFile >> data;
@@ -779,7 +779,7 @@ int main(){
     writeTo++;
   }
   romFile.close();
-  ifstream diskFile ("./images/disk");
+  ifstream diskFile ("../images/disk");
   writeTo = 0;
   diskFile >> data;
   diskFile >> data;

@@ -3,13 +3,13 @@ const fs = require("fs");
 const read = fs.readFileSync;
 const write = fs.writeFileSync;
 
-module.exports = function(inputf,outputf){
+module.exports = function(inputf,outputf,root){
 
 write(
   outputf || "out.txt",
   compiler.format(
     compiler.compile(
-      read(inputf,"utf8")
+      read(inputf,"utf8"),root
     )
   )
 );

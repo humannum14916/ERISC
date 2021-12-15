@@ -3,11 +3,17 @@
 Commands:
   update - git pull and rebuild the C++ emulators
   build (version) - assemble the v(version) OS
+  run (version) - emulate os v(version) using
+      the C++ emulator
+  runJS (version) - emulate os v(version) using
+      the JS emulator
 */
 
 const spawn = require("child_process").spawn;
-async function exec(command,params){
-  let proc = spawn(command,params,{stdio:"inherit"});
+async function exec(command,params,options){
+  let proc = spawn(command,params,Object.assign(
+    {stdio:"inherit"},options
+  ));
   await new Promise(r=>{proc.on("close",r);});
 }
 
@@ -30,8 +36,22 @@ while(args.length != 0){
     await exec("git",["pull"]);
     console.log("Recompiling emulators...");
     await buildEmu("4/tools/emulate");
+    console.log("Emulators built");
   } else if(command == "build"){
     let version = args.shift();
+    console.log("Building OS v"+version+"...");
+    await exec("node",
+      ["./"+version+"/tools/build.js"]
+    );
+  } else if(command == "run"){
+    console.log(process.cwd());
+    let version = args.shift();
+    console.log("Running OS v"+version+"...");
+    await exec("./emulate",[],{cwd:"./"+version+"/tools",shell:true});
+  } else if(command == "runJS"){
+    let version = args.shift();
+    console.log("Running OS v"+version+" (JS emulator)...");
+    await exec("node",[version+"/tools/emulate.js"]);
   } else {
     error("Invalid command \""+command+"\"");
   }

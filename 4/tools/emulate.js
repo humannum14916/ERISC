@@ -3,7 +3,7 @@ const read = require("fs").readFileSync;
 const decHex = compiler.decHex;
 const hexDec = compiler.hexDec;
 
-module.exports = async function(bootf,diskf,keyBuffer){
+f/*module.exports*/ = async function(bootf,diskf,keyBuffer){
   //memory class
   class Memory{
     constructor(lsFile,blank=false){
@@ -703,3 +703,7 @@ module.exports = async function(bootf,diskf,keyBuffer){
     tickNum++;
   }
 }
+
+let is = __dirname+"/../images/";
+
+f(is+"bootRom",is+"disk");

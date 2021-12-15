@@ -7,11 +7,11 @@ function error(m,v){
   process.exit(1);
 }
 
-function preP(code){
-  return prePDec(prePDef(prePLink(code)));
+function preP(code,root){
+  return prePDec(prePDef(prePLink(code,root)));
 }
 
-function prePLink(codeE){
+function prePLink(codeE,root){
   let code = codeE.slice();
   let out = "";
   while(code.length>0){
@@ -22,7 +22,7 @@ function prePLink(codeE){
         let end = code.indexOf("\n");
         let path = code.slice(6,end);
         code = code.slice(end);
-        let other = read(path,"utf8");
+        let other = read(root+path,"utf8");
         code = "_" + other + code;
     } else {
       out += code[0];
@@ -239,8 +239,8 @@ function print(bin){
   for(l of bin) console.log(l);
 }
 
-function compile(code){
-  return compileP(parse(preP(code)));
+function compile(code,root){
+  return compileP(parse(preP(code,root)));
 }
 
 function format(bin){

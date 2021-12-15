@@ -86,12 +86,12 @@ function buildHeader(file){
   return header;
 }
 
-function buildFile(file){
+function buildFile(file,root){
   if(file.source){
-    let source = read(file.source,"utf-8");
+    let source = read(root+file.source,"utf-8");
     if(file.type == "executable"){
       file.contents = formatCode(
-        compiler.compile(source)
+        compiler.compile(source,root)
       );
       console.log(file.name+": "+
         Math.ceil(file.contents.length/256)*256
@@ -109,7 +109,7 @@ function buildFile(file){
     let insert = disk.length;
     let data = [];
     for(let f of file.contents){
-      data.push(buildFile(f));
+      data.push(buildFile(f,root));
     }
     disk = disk.slice(0,insert)
       +format(data).out
@@ -122,7 +122,7 @@ function buildFile(file){
   return headerPos;
 }
 
-let files = JSON.parse(read(inputf,"utf8"));
+let files = JSON.parse(read(inputf+"fsLayout.json","utf8"));
 let dest = outputf;
 
 let disk = "v2.0 raw\n";
@@ -131,19 +131,19 @@ let nextBlock = 0;
 //compile the kernel
 if(!files.kernel) error("No kernel file");
 let kernel = format(formatCode(
-  compiler.compile(read(files.kernel,"UTF-8"))
+  compiler.compile(read(inputf+files.kernel,"UTF-8"),inputf)
 ));
 disk += kernel.out;
-let kSizeOld = JSON.parse(read("images/oldKernelLen.json"));
+let kSizeOld = JSON.parse(read(dest+"/oldKernelLen.json"));
 let kernelSize = kernel.blocks*256;
 if(kernelSize!=kSizeOld) error("Warning: Kernel size changed from "+kSizeOld+" to "+kernelSize);
 console.log("Kernel size: "+kernelSize+" words")
 nextBlock += kernel.blocks;
 
 //build the file system
-buildFile(files,true);
+buildFile(files,inputf);
 
 //write to destination
-write(dest,disk);
+write(dest+"/disk",disk);
 
 }
