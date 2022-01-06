@@ -1,20 +1,40 @@
 
-CPU versions:
-  v1cpu
-  v2cpu
+## Repository Contents
 
-Emulators:
-  v1cpuEmu
-  v2cpuEmuJS
-  v2cpuEmu
+codeGen:
+  + Toolchains for building ERISC OS versions
 
-Schematics:
-  v1cpuSch
-  v2cpuSch
+emulators:
+  + Emulators for different ERISC CPUs
 
-Current CPU:          v2cpu
-Current build system: v2build
+images:
+  + Pre-build OS images
 
-OS Version | Min CPU | Max CPU | Min build system | Max build system
-v2os         v2cpu     current   v2build            current
-v1os         v1cpu     v1        v1build            v1build
+os:
+  + ERISC OS source files
+
+schematics:
+  + Logisim-Evolution schematics for each CPU version
+
+utils:
+  + Utility scripts for emulators/toolchains
+
+## Compatability
+
+Current CPU:
+  + v2cpu
+
+Current build system:
+  + v2build
+
+OS v1:
+  + Min CPU: v2
+  + Max CPU: current
+  + Min build system: v2
+  + Max build system: current
+
+OS v1:
+  + Min CPU: v1
+  + Max CPU: v2
+  + Min build system: v1
+  + Max build system: v1
