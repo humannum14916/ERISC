@@ -1,0 +1,90 @@
+; ERISC OS 3.0
+; Boot ROM
+
+!link macros.txt
+
+
+; Setup for exit
+TRS start,PC ; Jump to start
+TRS 0,0 ; Filler
+LBL MAIN_TO_DISK ; Program exit
+TRS 0,HD-TRS ; Load next program
+
+
+; Interrupt handler
+LBL INTERRUPT
+TRS 0,KBD ; Clear character
+TRS INTERRUPT,PC ; Loop
+
+
+; Entry point
+LBL start
+TRS 1,LCD ; Status update (working)
+
+
+; Print message:
+; Welcome to ERISC OS 3.0
+; Run "plist" for available programs
+TRS 87,TTY  ; W
+TRS 101,TTY ; e
+TRS 108,TTY ; l
+TRS 99,TTY  ; c
+TRS 111,TTY ; o
+TRS 109,TTY ; m
+TRS 101,TTY ; e
+TRS 32,TTY  ; _
+TRS 116,TTY ; t
+TRS 111,TTY ; o
+TRS 32,TTY  ; _
+TRS 69,TTY  ; E
+TRS 82,TTY  ; R
+TRS 73,TTY  ; I
+TRS 83,TTY  ; S
+TRS 67,TTY  ; C
+TRS 32,TTY  ; _
+TRS 79,TTY  ; O
+TRS 83,TTY  ; S
+TRS 32,TTY  ; _
+TRS 51,TTY  ; 3
+TRS 46,TTY  ; .
+TRS 48,TTY  ; 0
+TRS 10,TTY  ; \n
+TRS 82,TTY  ; R
+TRS 117,TTY ; u
+TRS 110,TTY ; n
+TRS 32,TTY  ; _
+TRS 34,TTY  ; #
+TRS 112,TTY ; p
+TRS 108,TTY ; l
+TRS 105,TTY ; i
+TRS 115,TTY ; s
+TRS 116,TTY ; t
+TRS 34,TTY  ; #
+TRS 32,TTY  ; _
+TRS 102,TTY ; f
+TRS 111,TTY ; o
+TRS 114,TTY ; r
+TRS 32,TTY  ; _
+TRS 97,TTY  ; a
+TRS 118,TTY ; v
+TRS 97,TTY  ; a
+TRS 105,TTY ; i
+TRS 108,TTY ; l
+TRS 97,TTY  ; a
+TRS 98,TTY  ; b
+TRS 108,TTY ; l
+TRS 101,TTY ; e
+TRS 32,TTY  ; _
+TRS 112,TTY ; p
+TRS 114,TTY ; r
+TRS 111,TTY ; o
+TRS 103,TTY ; g
+TRS 114,TTY ; r
+TRS 97,TTY  ; a
+TRS 109,TTY ; m
+TRS 115,TTY ; s
+TRS 10,TTY  ; \n
+TRS 10,TTY  ; \n
+
+
+!defU ChangeProg 256 ; Start shell

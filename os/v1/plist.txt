@@ -1,0 +1,89 @@
+; ERISC OS 3.0
+; Help script
+
+!link macros.txt
+
+
+! Setup enter/exit
+!defU ProgStart
+
+! Main entry point
+LBL DISK_TO_MAIN
+TRS 1,LCD ; Status update (working)
+
+; Add spacer lines
+TRS 10,TTY
+TRS 10,TTY
+
+; Load the disk info table
+TRS 0,HD-SL
+TRS 0,HD-SH
+TRS 256,HD-TL
+TRS 256,HD-WS
+TRS 4,LCD ; Status update (loading data)
+TRS 0,HD-TRS
+TRS 1,LCD ; Status update (working)
+
+; Print message:
+; Available programs:\n
+TRS 65,TTY  ; A
+TRS 118,TTY ; v
+TRS 97,TTY  ; a
+TRS 105,TTY ; i
+TRS 108,TTY ; l
+TRS 97,TTY  ; a
+TRS 98,TTY  ; b
+TRS 108,TTY ; l
+TRS 101,TTY ; e
+TRS 32,TTY  ; _
+TRS 112,TTY ; p
+TRS 114,TTY ; r
+TRS 111,TTY ; o
+TRS 103,TTY ; g
+TRS 114,TTY ; r
+TRS 97,TTY  ; a
+TRS 109,TTY ; m
+TRS 115,TTY ; s
+TRS 58,TTY  ; :
+TRS 10,TTY  ; \n
+
+; Setup
+TRS 255,DiskScan
+LBL NextChar ; Print loop
+TRS DiskScan,ALU-A
+TRS 1,ALU-B
+TRS 0,ALU-C
+TRS ALU-O,DiskScan
+TRS DiskScan,$1
+TRS #0,ALU-A
+TRS 0,ALU-B
+TRS 2,ALU-C
+!defU cJump ALU-O NextLine
+TRS DiskScan,$1
+TRS #0,TTY
+TRS NextChar,PC
+LBL NextLine
+TRS 10,TTY ; Print new line
+TRS DiskScan,ALU-A
+TRS 1,ALU-B
+TRS 0,ALU-C
+TRS ALU-O,$1
+TRS #0,ALU-A
+TRS 0,ALU-B
+TRS 2,ALU-C
+!defU cJump ALU-O Done
+TRS NextChar,PC
+LBL Done
+
+; Print spacer line
+TRS 10,TTY
+
+; Switch back to shell
+!defU ChangeProg 256
+
+; Interrupt handler
+LBL INTERRUPT
+
+; Clear character
+TRS 0,KBD
+TRS INTERRUPT,PC ; Loop

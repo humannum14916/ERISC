@@ -1,4 +1,4 @@
-const compiler = require("./ERISCassembler.js");
+const compiler = require("./assemblerBase.js");
 const fs = require("fs");
 const read = fs.readFileSync;
 const write = fs.writeFileSync;

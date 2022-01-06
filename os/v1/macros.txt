@@ -1,0 +1,57 @@
+; ERISC OS 3.0
+; Macros
+
+
+; Program start
+!def ProgStart
+
+LBL INT_TO_DISK
+TRS 0,HD-TRS
+TRS DISK_TO_INT,PC
+
+LBL MAIN_TO_DISK
+TRS 0,HD-TRS
+TRS DISK_TO_MAIN,PC
+
+!defE ProgStart
+
+
+; Program change
+; %0: Target disk address
+!def ChangeProg
+
+; Setup transfer params
+TRS %0,HD-SL
+TRS 0,HD-SH
+TRS 256,HD-TL
+TRS 0,HD-WS
+
+TRS 3,LCD ; Status update (loading program)
+
+; Jump to change location
+TRS MAIN_TO_DISK,PC
+
+!defE ChangeProg
+
+
+; Conditional Jump (== 1)
+; %0: Should jump be made
+; %1: Jump destination
+!def cJump
+
+; Set true jump dest
+TRS %1,$16
+
+; Set jump source
+TRS %0,ALU-A
+TRS 0,ALU-C; Set ALU to add
+TRS 5,ALU-B ; Add ofset
+TRS ALU-O,ALU-A
+TRS PC,ALU-B ; Add PC
+TRS ALU-O,$1 ; Transfer
+
+; Jump
+TRS 0,PC
+TRS $2,0 ; Filler (jump options go here)
+
+!defE cJump

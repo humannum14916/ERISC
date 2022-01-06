@@ -1,12 +1,5 @@
 const read = require("fs").readFileSync;
 
-function error(m,v){
-  console.log("Compilation error:");
-  console.log(m);
-  if(v) console.log(v);
-  process.exit(1);
-}
-
 function preP(code,root){
   return prePDec(prePDef(prePLink(code,root)));
 }
@@ -68,22 +61,14 @@ function prePDef(codeE){
 
 function useMacro(ms,params){
   let m = ms[params[0]];
-  let name = params[0];
-  if(!m) error("Macro \""+name+"\" undefined");
   params = params.slice(1);
   let o = "";
   while(m.length>0){
     if(m[0] == "%"){
-      let end = 100;
-      for(let e of [" ","\n",","]){
-        let l = m.indexOf(e);
-        if(l != -1 && l < end) end = l;
-      }
+      let end = Math.min(m.indexOf(" "),m.indexOf("\n"),m.indexOf(","));
       let n = m.slice(1,end);
       m = m.slice(end);
-      let p = params[n*1];
-      if(!p) error("Macro parameter "+n+" not defined in macro "+name);
-      o += p;
+      o += params[n*1];
     } else {
       o += m[0];
       m = m.slice(1);
@@ -121,18 +106,10 @@ function parse(code){
 
 function compileP(parsed){
   let alls = [];
-  let num = 0;
   for(let com of parsed){
-    if(!(
-      ((com.op == "LBL") && (com.params.length == 1)) ||
-      ((com.op == "TRS") && (com.params.length == 2))
-    )){
-      error("Malformed instruction at "+num+": ",com);
-    }
     for(let par of com.params){
       if(par[0] != "$" && par[0] != "#") alls.push(par);
     }
-    num++
   }
   alls = alls.reduce((cur,el)=>{
     if(cur.indexOf(el)==-1) cur.push(el);
@@ -143,12 +120,7 @@ function compileP(parsed){
   let ops = [];
   for(let l of parsed){
     if(l.op == "TRS"){
-      for(let p of l.params){
-        if(p[0] == "@"){
-          adrs[p] = hexDec(p.slice(1));
-        }
-        ops.push(p);
-      }
+      ops = ops.concat(l.params);
     } else if(l.op == "LBL"){
       adrs[l.params[0]] = ops.length;
     }
@@ -170,8 +142,6 @@ function compileP(parsed){
       "HD-TL":{adr:hexDec("fff4")},//Hard drive transfer length
       "HD-WS":{adr:hexDec("fff3")},//Hard drive write start
       "HD-TRS":{adr:hexDec("fff2")},//Hard drive init transfer
-      "BF-PL":{adr:hexDec("fff1")},//Bus firewall page length
-      "BF-PS":{adr:hexDec("fff0")},//Bus firewall page source
     }[a];
     if(pres){
       adrs[a] = pres;
@@ -179,7 +149,7 @@ function compileP(parsed){
       adrs[a] = {adr:next,val:adrs[a]};
       next++
       if(/^\d+$/.test(a)){
-        adrs[a].val = a*1;
+        adrs[a].val = (a-1)+1;
       }
     }
   }
@@ -199,6 +169,10 @@ function compileP(parsed){
     if(adrs[a].val!=undefined) o.push(adrs[a].val);
   }
   let ot = [];
+  if(adrs["INTERRUPT"]){
+    ot.push(["fe",decHex(adrs["INTERRUPT"].adr)]);
+    ot.push(["ff","ffff"]);
+  }
   for(let i=0;i<o.length;i++){
     let adr = decHex(i);
     ot.push([adr,decHex(o[i])]);

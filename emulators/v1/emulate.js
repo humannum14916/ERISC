@@ -1,7 +1,5 @@
-const compiler = require("./ERISCassembler.js");
 const read = require("fs").readFileSync;
-const decHex = compiler.decHex;
-const hexDec = compiler.hexDec;
+const {decHex,hexDec} = require("../../utils/convert.js");
 
 f/*module.exports*/ = async function(bootf,diskf,keyBuffer){
   //memory class
@@ -310,7 +308,7 @@ f/*module.exports*/ = async function(bootf,diskf,keyBuffer){
       this.type = "ProgCounter";
       this.interruptPC = 0;
       this.mainPC = 0;
-      this.interruptStart = 0;
+      this.interruptStart = hexDec("fe");
       this.selectedPC = "main";
     }
     getSelectedPC(){
@@ -440,6 +438,7 @@ f/*module.exports*/ = async function(bootf,diskf,keyBuffer){
       this.activeInterrupt = false;
     }
     checkActive(){
+      return false;
       if(getBusDevice("ProgCounter").selectedPC=="main"){
         return this.activeInterrupt;
       } else {
@@ -704,6 +703,6 @@ f/*module.exports*/ = async function(bootf,diskf,keyBuffer){
   }
 }
 
-let is = __dirname+"/../images/";
+let is = process.argv[2]+"/";
 
 f(is+"bootRom",is+"disk");

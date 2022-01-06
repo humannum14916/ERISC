@@ -1,16 +1,14 @@
-const compiler = require("./ERISCassembler.js");
-const ascii = require("./ASCIIconvert.js");
-const {decHex,hexDec} = compiler;
+const {decHex,hexDec,toASCII,fromASCII}
+  = require("../../utils/convert.js");
 const fs = require("fs");
 const read = fs.readFileSync;
 const write = fs.writeFileSync;
 const path = require("path");
-
-module.exports = function(inputf,outputf){
+const {serve,call} = require("../../utils/ioWrap.js");
 
 function error(e){
-  console.log("FS build error:");
-  console.log(e);
+  console.error("FS build error:");
+  console.error(e);
   process.exit(1);
 }
 
@@ -33,7 +31,7 @@ function formatCode(bin){
 }
 
 function formatText(file){
-  return ascii(file).map(decHex);
+  return toASCII(file).map(decHex);
 }
 
 function format(file){
@@ -78,7 +76,7 @@ function buildHeader(file){
     header.push(decHex((nextBlock+1+i)*256));
   }//data block list
   header.push(0);//data blocks list termination
-  header = header.concat(ascii(file.name).map(decHex));//name
+  header = header.concat(toASCII(file.name).map(decHex));//name
   header.push(0);//name termination
   if(header.length > 256) {
     error("Header for file "+file.name+" too big");
@@ -91,9 +89,9 @@ function buildFile(file,root){
     let source = read(root+file.source,"utf-8");
     if(file.type == "executable"){
       file.contents = formatCode(
-        compiler.compile(source,root)
+        JSON.parse(call("codeGen/assembler.js",source,[root,"true"]))
       );
-      console.log(file.name+": "+
+      console.error(file.name+": "+
         Math.ceil(file.contents.length/256)*256
         +" words");
     } else if(file.type == "text"){
@@ -122,28 +120,40 @@ function buildFile(file,root){
   return headerPos;
 }
 
-let files = JSON.parse(read(inputf+"fsLayout.json","utf8"));
-let dest = outputf;
-
 let disk = "v2.0 raw\n";
 let nextBlock = 0;
+
+serve((_,params)=>{
+
+d = params[0];
+let dest = params[1];
+
+if(!dest) error("No destination set!");
+if(!d) error("No source root set!");
+
+let files = JSON.parse(read(d+"/fsLayout.json","utf8"));
+
+disk = "v2.0 raw\n";
+nextBlock = 0;
 
 //compile the kernel
 if(!files.kernel) error("No kernel file");
 let kernel = format(formatCode(
-  compiler.compile(read(inputf+files.kernel,"UTF-8"),inputf)
+  JSON.parse(call("codeGen/assembler.js",
+    read(d+"/"+files.kernel,"UTF-8"),
+  [d,"true"]))
 ));
+//console.error(kernel);
 disk += kernel.out;
 let kSizeOld = JSON.parse(read(dest+"/oldKernelLen.json"));
 let kernelSize = kernel.blocks*256;
 if(kernelSize!=kSizeOld) error("Warning: Kernel size changed from "+kSizeOld+" to "+kernelSize);
-console.log("Kernel size: "+kernelSize+" words")
+console.error("Kernel size: "+kernelSize+" words");
 nextBlock += kernel.blocks;
 
 //build the file system
-buildFile(files,inputf);
+buildFile(files,d);
 
-//write to destination
-write(dest+"/disk",disk);
+return disk;
 
-}
+});

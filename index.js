@@ -1,12 +1,11 @@
 
 /*
 Commands:
-  update - git pull and rebuild the C++ emulators
-  build (version) - assemble the v(version) OS
-  run (version) - emulate os v(version) using
-      the C++ emulator
-  runJS (version) - emulate os v(version) using
-      the JS emulator
+  update - git pull and rebuild any compiled programs
+  emulate (emulator) (image) - Runs emulator
+    (emulator) on image (image)
+  build (source) (dest) (tool) - Builds (source) to
+    (dest) using (tool)
 */
 
 const spawn = require("child_process").spawn;
@@ -35,23 +34,34 @@ while(args.length != 0){
     console.log("Updating...");
     await exec("git",["pull"]);
     console.log("Recompiling emulators...");
-    await buildEmu("4/tools/emulate");
+    await buildEmu("emulators/v2/emulate");
     console.log("Emulators built");
   } else if(command == "build"){
-    let version = args.shift();
-    console.log("Building OS v"+version+"...");
-    await exec("node",
-      ["./"+version+"/tools/build.js"]
-    );
-  } else if(command == "run"){
-    console.log(process.cwd());
-    let version = args.shift();
-    console.log("Running OS v"+version+"...");
-    await exec("./emulate",[],{cwd:"./"+version+"/tools",shell:true});
-  } else if(command == "runJS"){
-    let version = args.shift();
-    console.log("Running OS v"+version+" (JS emulator)...");
-    await exec("node",[version+"/tools/emulate.js"]);
+    let source = args.shift();
+    let dest = args.shift();
+    let toolR = args.shift();
+    tool = {
+      "v2":{
+        command:"node",args:[
+          "codeGen/v2/build.js",source,dest
+      ]},
+      "v1":{
+        command:"node",args:[
+          "codeGen/v1/build.js",source,dest
+      ]},
+    }[toolR];
+    if(!tool) error("Unkown tool \""+toolR+"\"");
+    await exec(tool.command,tool.args);
+  } else if(command == "emulate"){
+    let emu = args.shift();
+    let image = args.shift();
+    emu = {
+      "v2":{command:"emulators/v2/emulate",args:[]},
+      "v2JS":{command:"node",args:["emulators/v2/emulate.js"]},
+      "v1":{command:"node",args:["emulators/v1/emulate.js"]},
+    }[emu] || {command:emu,args:[]};
+    emu.args.push(image);
+    exec(emu.command,emu.args);
   } else {
     error("Invalid command \""+command+"\"");
   }

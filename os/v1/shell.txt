@@ -1,0 +1,119 @@
+; ERISC OS 3.0
+; Command line
+
+!link macros.txt
+
+
+; Setup enter/exit
+!defU ProgStart
+
+; Main entry point
+LBL DISK_TO_MAIN
+TRS 1,LCD ; Status update (working)
+
+
+; Load the disk info table
+TRS 0,HD-SL
+TRS 0,HD-SH
+TRS 256,HD-TL
+TRS 257,HD-WS
+TRS 4,LCD ; Status update (loading data)
+TRS 0,HD-TRS
+TRS 1,LCD ; Status update (working)
+
+; Set the input string end pointer
+TRS 513,InputString
+
+TRS 62,TTY ; Print command prompt
+TRS 1,ReadyForInput ; Enable user input
+
+; Wait for input string
+TRS 2,LCD ; Status update (idle)
+LBL AwaitInput
+TRS AwaitInput,PC ; Sit in a loop
+
+; Handle the input
+LBL ProcessInput
+TRS 1,LCD ; Status update (working)
+
+;String-matching sphaghetti
+TRS 256,LoadSource
+TRS 256,DiskScan
+LBL NextTest
+TRS NextChar,Next
+TRS Done,HandleDone
+TRS 0,ALU-C
+TRS 1,ALU-B
+TRS DiskScan,ALU-A
+TRS ALU-O,DiskScan
+TRS 513,StringScan
+LBL NextChar
+TRS DiskScan,$1
+TRS #0,ALU-A
+TRS StringScan,$1
+TRS #0,ALU-B
+TRS 2,ALU-C
+!defU cJump ALU-O CheckZero
+TRS TestFail,PC
+LBL CheckZero
+TRS DiskScan,$1
+TRS #0,ALU-A
+TRS 0,ALU-B
+TRS 2,ALU-C
+!defU cJump ALU-O HandleDone
+TRS 0,ALU-C
+TRS 1,ALU-B
+TRS DiskScan,ALU-A
+TRS ALU-O,DiskScan
+TRS StringScan,ALU-A
+TRS ALU-O,StringScan
+TRS Next,PC
+LBL TestFail
+TRS NextTest,HandleDone
+TRS CheckZero,Next
+TRS 0,ALU-C
+TRS 256,ALU-B
+TRS LoadSource,ALU-A
+TRS ALU-O,LoadSource
+TRS Next,PC
+LBL Done
+
+; Run selected program
+!defU ChangeProg LoadSource
+
+
+; Interrupt handler
+LBL INTERRUPT
+
+; Check if input is enabled
+!defU cJump ReadyForInput HandleChar
+
+LBL ClearChar ; Input disabled, clear
+TRS 0,KBD
+TRS ClearChar,PC ; Loop to clear again
+
+; Input enabled, handle
+LBL HandleChar
+
+; Check for a return character
+TRS KBD,ALU-A
+TRS 10,ALU-B
+TRS 2,ALU-C ; Set ALU to compare
+!defU cJump ALU-O InputDone ; Check
+
+; Regular character, print and store
+TRS InputString,$2
+TRS KBD,#0 ; Store character
+TRS 0,ALU-C ; Set ALU to add
+TRS InputString,ALU-A
+TRS 1,ALU-B
+TRS ALU-O,InputString ; Increment input string pointer
+TRS KBD,TTY ; Echo character to screen
+TRS 0,KBD ; Clear character
+TRS HandleChar,PC ; Loop to character handler
+
+; Enter pressed, process input
+LBL InputDone
+TRS 0,ReadyForInput ; Disable input
+TRS ProcessInput,AwaitInput ; Break main execution out of halt
+TRS ClearChar,PC ; Input definitively disabled, jump to character clearing

@@ -764,10 +764,20 @@ string numToString(unsigned int n){
 }
 
 
-int main(){
+int main(int argc, char *argv[]){
 
-  log("Loading files");
-  ifstream romFile ("../images/bootRom");
+  if(argc == 1) error("No image specified");
+
+  log(argv[1]);
+
+  log("Loading files...");
+  ostringstream romPath;
+  romPath << argv[1];
+  romPath << "/bootRom";
+  ostringstream diskPath;
+  diskPath << argv[1];
+  diskPath << "/disk";
+  ifstream romFile (romPath.str());
   unsigned int writeTo = 0;
   string data;
   romFile >> data;
@@ -779,7 +789,7 @@ int main(){
     writeTo++;
   }
   romFile.close();
-  ifstream diskFile ("../images/disk");
+  ifstream diskFile (diskPath.str());
   writeTo = 0;
   diskFile >> data;
   diskFile >> data;
@@ -792,7 +802,7 @@ int main(){
   diskFile.close();
   log("Files loaded");
 
-  log("Creating bus");
+  log("Creating bus...");
   //0: CPU
   bus[0].readDevice = &default_readDevice;
   bus[0].writeDevice = &default_writeDevice;
@@ -843,7 +853,7 @@ int main(){
   //done
   log("Bus created");
 
-  log("Starting emulation");
+  log("Starting emulation...");
 
   //setup input
 
@@ -885,6 +895,7 @@ int main(){
     if (0 < waitret) { // there is data on stdin!
       string line;
       getline(cin, line);
+      if(line == "!!!CRASH!!!") error("Crash requested");
       keyboard_buffer += line + "\n";
     }
     //>
