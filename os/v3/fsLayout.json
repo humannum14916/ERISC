@@ -13,7 +13,7 @@
       "source":"system/shell.txt"
     },{
       "type":"executable",
-      "build":"asm",
+      "build":"cl",
       "name":"echo",
       "source":"programs/echo.txt"
     },{

@@ -1,75 +1,43 @@
-; ERSIC OS 4.0 echo Command
-!link utils/macros.txt
 
-!defU StartUser
+meta header userspace;
 
+struct changePointers {
+  array[char] toPath,
+  array[char] param
+};
 
-TRS @100,ToPrint
+define array[char] toPrint = 256;
 
-TRS ChangeProg-Pointers,$2
-TRS ChangeProg-DestPath,#0
-TRS ChangeProg-Pointers,ChangeProg-Pointer2
-!defU Incrament ChangeProg-Pointer2
-TRS ChangeProg-Pointer2,$2
-TRS ChangeProg-Params,#0
+define array[char] changePath
+  = "/programs/shell";
 
+define array[char] changeParam = 0;
 
-; Load the string to be echoed
-!defU kCall 4 ToPrint
+define changePointers returnToShell
+  = {toPath: changePath, param: changeParam}; 
 
-; Print it
-LBL NextChar
+function stackless void MAIN(){
+  //load the string to be echoed
+  asm "!defU kCall 4 toPrint";
 
-; Get the current charactar
-TRS ToPrint,$1
-TRS #0,CurrentChar
+  //print loop
+  define char curChar = null;
+  for(define int i=0;i<toPrint->length;set i=i+1){
+    //get current character
+    set curChar = toPrint[i];
 
-; Check for end (null)
-TRS CurrentChar,ALU-A
-TRS 0,ALU-B
-TRS 2,ALU-C ; Set mode(compare)
+    //print it
+    asm "!defU kCall 0 MAIN.toPrint";
+  };
 
-!defU cJump ALU-O End
+  //add a newline
+  asm "!defU kCall 0 10";
 
-; Print it
-!defU kCall 0 CurrentChar
+  //return to the shell
+  asm "!defU kCall 3 returnToShell";
+};
 
-; Incrament the pointer
-!defU Incrament ToPrint
-
-; Loop
-TRS NextChar,PC
-
-; End
-LBL End
-
-; Add a newline
-!defU kCall 0 10
-
-; Return to the shell
-!defU kCall 3 ChangeProg-Pointers
-
-
-; Ignore character input
-LBL INTERRUPT
-!defU kCall 1 0
-TRS INTERRUPT,PC
-
-
-; Program change info
-LBL ChangeProg-Pointers
-TRS #0,#0
-
-LBL ChangeProg-DestPath
-; /Programs/shell
-TRS #47,#80
-TRS #114,#111
-TRS #103,#114
-TRS #97,#109
-TRS #115,#47
-TRS #115,#104
-TRS #101,#108
-TRS #108,#0
-
-LBL ChangeProg-Params
-TRS #0,#0
+function stackless void INTERRUPT(){
+  //ignore character input
+  asm "!defU kCall 1 0";
+};
