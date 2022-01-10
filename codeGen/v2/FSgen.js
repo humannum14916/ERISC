@@ -147,11 +147,9 @@ nextBlock = 0;
 
 //compile the kernel
 if(!files.kernel) error("No kernel file");
-let kernel = format(formatCode(
-  JSON.parse(call("codeGen/v2/assembler.js",
-    read(d+"/"+files.kernel,"UTF-8"),
-  [d,"true"]))
-));
+let kernel = format(
+  buildExec(files,read(d+"/"+files.kernel,"UTF-8"),d)
+);
 //console.error(kernel);
 disk += kernel.out;
 let kSizeOld = JSON.parse(read(dest+"/oldKernelLen.json"));
