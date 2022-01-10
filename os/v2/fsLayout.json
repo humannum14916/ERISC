@@ -1,36 +1,44 @@
 {
   "type":"directory",
   "kernel":"system/kernel.txt",
+  "build":"asm",
   "name":"/",
   "contents":[{
     "name":"Programs",
     "type":"directory",
     "contents":[{
       "type":"executable",
+      "build":"asm",
       "name":"shell",
       "source":"system/shell.txt"
     },{
       "type":"executable",
+      "build":"asm",
       "name":"echo",
       "source":"programs/echo.txt"
     },{
       "type":"executable",
+      "build":"asm",
       "name":"ls",
       "source":"programs/ls.txt"
     },{
       "type":"executable",
+      "build":"asm",
       "name":"cd",
       "source":"programs/cd.txt"
     },{
       "type":"executable",
+      "build":"asm",
       "name":"cat",
       "source":"programs/cat.txt"
     },{
       "type":"executable",
+      "build":"asm",
       "name":"help",
       "source":"programs/help.txt"
     },{
       "type":"executable",
+      "build":"asm",
       "name":"clear",
       "source":"programs/clear.txt"
     }]
