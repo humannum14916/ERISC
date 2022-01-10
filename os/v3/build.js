@@ -1,7 +1,7 @@
 const {call} = require("../../utils/ioWrap.js");
 
-let source = "os/v2";//process.argv[2];
-let dest = "images/v2";//process.argv[3];
+let source = "os/v3";//process.argv[2];
+let dest = "images/v3";//process.argv[3];
 
 console.log("Building...");
 //compile boot ROM
