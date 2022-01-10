@@ -20,6 +20,17 @@ function buildExec(file,source,root){
         source,[root,"true"])
       )
     );
+  } else if(file.build == "cl"){
+    let compiled = call(
+      "codeGen/v2/compiler.js",
+      source,[root]
+    );
+    return formatCode(
+      JSON.parse(call(
+        "codeGen/v2/assembler.js",
+        compiled,[root,"true"])
+      )
+    );
   } else error("Unknown executable build tool \""+file.build+"\"");
 }
 
