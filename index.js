@@ -4,8 +4,7 @@ Commands:
   update - git pull and rebuild any compiled programs
   emulate (emulator) (image) - Runs emulator
     (emulator) on image (image)
-  build (source) (dest) (tool) - Builds (source) to
-    (dest) using (tool)
+  build (os) - Builds os (os)
 */
 
 const spawn = require("child_process").spawn;
@@ -37,17 +36,15 @@ while(args.length != 0){
     await buildEmu("emulators/v2/emulate");
     console.log("Emulators built");
   } else if(command == "build"){
-    let source = args.shift();
-    let dest = args.shift();
     let toolR = args.shift();
     tool = {
-      "v2":{
-        command:"node",args:[
-          "codeGen/v2/build.js",source,dest
-      ]},
       "v1":{
         command:"node",args:[
-          "codeGen/v1/build.js",source,dest
+          "os/v1/build.js"
+      ]},
+      "v2":{
+        command:"node",args:[
+          "os/v2/build.js"
       ]},
     }[toolR];
     if(!tool) error("Unkown tool \""+toolR+"\"");

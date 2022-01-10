@@ -89,7 +89,7 @@ function buildFile(file,root){
     let source = read(root+file.source,"utf-8");
     if(file.type == "executable"){
       file.contents = formatCode(
-        JSON.parse(call("codeGen/assembler.js",source,[root,"true"]))
+        JSON.parse(call("codeGen/v2/assembler.js",source,[root,"true"]))
       );
       console.error(file.name+": "+
         Math.ceil(file.contents.length/256)*256
@@ -139,7 +139,7 @@ nextBlock = 0;
 //compile the kernel
 if(!files.kernel) error("No kernel file");
 let kernel = format(formatCode(
-  JSON.parse(call("codeGen/assembler.js",
+  JSON.parse(call("codeGen/v2/assembler.js",
     read(d+"/"+files.kernel,"UTF-8"),
   [d,"true"]))
 ));

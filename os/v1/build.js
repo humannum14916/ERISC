@@ -1,9 +1,9 @@
 //get modules
-const compiler = require("./assembler.js");
-const fsGen = require("./FSgen.js");
+const compiler = require("../../codeGen/v1/assembler.js");
+const fsGen = require("../../codeGen/v1/FSgen.js");
 
-let source = process.argv[2];
-let dest = process.argv[3];
+let source = "os/v1";//process.argv[2];
+let dest = "images/v1";//process.argv[3];
 console.log("Building...");
 //compile boot ROM
 console.log("Assembling boot ROM...")
