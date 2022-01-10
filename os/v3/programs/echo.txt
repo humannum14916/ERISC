@@ -1,0 +1,75 @@
+; ERSIC OS 4.0 echo Command
+!link utils/macros.txt
+
+!defU StartUser
+
+
+TRS @100,ToPrint
+
+TRS ChangeProg-Pointers,$2
+TRS ChangeProg-DestPath,#0
+TRS ChangeProg-Pointers,ChangeProg-Pointer2
+!defU Incrament ChangeProg-Pointer2
+TRS ChangeProg-Pointer2,$2
+TRS ChangeProg-Params,#0
+
+
+; Load the string to be echoed
+!defU kCall 4 ToPrint
+
+; Print it
+LBL NextChar
+
+; Get the current charactar
+TRS ToPrint,$1
+TRS #0,CurrentChar
+
+; Check for end (null)
+TRS CurrentChar,ALU-A
+TRS 0,ALU-B
+TRS 2,ALU-C ; Set mode(compare)
+
+!defU cJump ALU-O End
+
+; Print it
+!defU kCall 0 CurrentChar
+
+; Incrament the pointer
+!defU Incrament ToPrint
+
+; Loop
+TRS NextChar,PC
+
+; End
+LBL End
+
+; Add a newline
+!defU kCall 0 10
+
+; Return to the shell
+!defU kCall 3 ChangeProg-Pointers
+
+
+; Ignore character input
+LBL INTERRUPT
+!defU kCall 1 0
+TRS INTERRUPT,PC
+
+
+; Program change info
+LBL ChangeProg-Pointers
+TRS #0,#0
+
+LBL ChangeProg-DestPath
+; /Programs/shell
+TRS #47,#80
+TRS #114,#111
+TRS #103,#114
+TRS #97,#109
+TRS #115,#47
+TRS #115,#104
+TRS #101,#108
+TRS #108,#0
+
+LBL ChangeProg-Params
+TRS #0,#0

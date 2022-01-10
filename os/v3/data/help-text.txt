@@ -1,0 +1,8 @@
+Commands:
+  help: Prints this message
+  ls: Lists all files in CWD and their types
+  cd _: Add /_ to CWD. If _ is . go up one directory
+  echo _: Echoes back _
+  cat _: Print the contents of file _
+  shell: The command prompt program
+  clear: Clears the screen
