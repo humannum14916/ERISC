@@ -20,7 +20,40 @@ function typeCheck(v,e,ev){
 
 const parsing = (()=>{
   //lexing
-  function lex(code){
+  function lex(code,root){
+    //preprocessing
+    code = (code=>{
+      let o = "";
+      let inString = false;
+      let escaped = false;
+      let linked = [];
+      while(code.length != 0){
+        if(!inString){
+          if(code[0] == "\""){
+            inString = true;
+          } else if(code.indexOf("#link ") == 0){
+            code = code.slice(6);
+            let end = code.indexOf("\n");
+            let path = code.slice(0,end);
+            code = code.slice(end);
+            if(linked.indexOf(path) == -1){
+              o += readFileSync(path);
+              linked.push(path);
+            }
+          }
+        } else {
+          if(code[0] == "\\"){
+            escaped = true;
+          } else if(!escaped && code[0] == "\""){
+            inString = false;
+          }
+        }
+        o += code[0];
+        code = code.slice(1);
+      }
+      return o;
+    })(code);
+    console.log(code);
     //split into characters
     code = code.split("").map(c=>{
       return {type:"character",value:c}
