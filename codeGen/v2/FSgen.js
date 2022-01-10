@@ -12,6 +12,17 @@ function error(e){
   process.exit(1);
 }
 
+function buildExec(file,source,root){
+  if(file.build == "asm"){
+    return formatCode(
+      JSON.parse(call(
+        "codeGen/v2/assembler.js",
+        source,[root,"true"])
+      )
+    );
+  } else error("Unknown executable build tool \""+file.build+"\"");
+}
+
 function formatCode(bin){
   let filled = {};
   let max = 0;
@@ -88,9 +99,7 @@ function buildFile(file,root){
   if(file.source){
     let source = read(root+file.source,"utf-8");
     if(file.type == "executable"){
-      file.contents = formatCode(
-        JSON.parse(call("codeGen/v2/assembler.js",source,[root,"true"]))
-      );
+      file.contents = buildExec(file,source,root);
       console.error(file.name+": "+
         Math.ceil(file.contents.length/256)*256
         +" words");
