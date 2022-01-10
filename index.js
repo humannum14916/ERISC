@@ -46,6 +46,10 @@ while(args.length != 0){
         command:"node",args:[
           "os/v2/build.js"
       ]},
+      "v3":{
+        command:"node",args:[
+          "os/v3/build.js"
+      ]},
     }[toolR];
     if(!tool) error("Unkown tool \""+toolR+"\"");
     await exec(tool.command,tool.args);
