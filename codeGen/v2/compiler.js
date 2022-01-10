@@ -53,7 +53,6 @@ const parsing = (()=>{
       }
       return o;
     })(code);
-    console.log(code);
     //split into characters
     code = code.split("").map(c=>{
       return {type:"character",value:c}
@@ -1758,7 +1757,7 @@ const stringify = (()=>{
           d.value.type != "struct" &&
           d.value.type != "null"
         ) error("Cannot use type \""+d.value.type+"\" as struct value",d);
-        o += "LBL "+n+",$0\n";
+        o += "LBL "+n+"\n";
         let complete = true;
         let t = structs.filter(s=>{
           return s.name == d.valType.name.value;
@@ -1873,8 +1872,6 @@ function compile(program,root){
 
 const {readFileSync} = require("fs");
 const {serve} = require("../../utils/ioWrap.js");
-
-compile(readFileSync("code.txt","utf8"));
 
 serve((d,params)=>{
   if(!params[0]) error("No build root!");
