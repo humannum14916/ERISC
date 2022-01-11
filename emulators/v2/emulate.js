@@ -100,6 +100,8 @@ f/*module.exports*/ = async function(bootf,diskf,keyBuffer){
         return r;
       } else if(this.config == 1){
         return (this.inputA > this.inputB)?1:0;
+      } else if(this.config == 3){
+        return (this.inputA < this.inputB)?1:0;
       } else {
         error("Undefined ALU config: "+this.config);
       }
