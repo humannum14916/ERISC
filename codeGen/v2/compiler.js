@@ -254,7 +254,7 @@ const parsing = (()=>{
       }
       return codeO;
     })(code);
-    //recognize || && and ^^
+    //recognize || && ^^ and !!
     code.forEach(e=>{
       if(
         e.type == "word" &&
