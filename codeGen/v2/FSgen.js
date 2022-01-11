@@ -161,7 +161,6 @@ if(!files.kernel) error("No kernel file");
 let kernel = format(
   buildExec(files,read(d+"/"+files.kernel,"UTF-8"),d)
 );
-//console.error(kernel);
 disk += kernel.out;
 let kSizeOld = JSON.parse(read(dest+"/oldKernelLen.json"));
 let kernelSize = kernel.blocks*256;
