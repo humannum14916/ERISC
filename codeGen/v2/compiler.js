@@ -1785,7 +1785,7 @@ const stringify = (()=>{
             return p.name.value == s;
           })[0] || {value:{type:"null",value:null}};
           if(complete){
-            o += "TRS "+valify(v.value)+",";
+            o += "TRS #"+valify(v.value)+",#";
             complete = false;
           } else {
             o += valify(v.value)+"\n";
