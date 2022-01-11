@@ -1052,7 +1052,7 @@ const nameResolution = (()=>{
       nameResolveValue(c.value,scope);
     } else if(c.type == "branch"){
       //resolve condition
-      nameResolveExpression(c.condition,scope);
+      if(c.condition) nameResolveExpression(c.condition,scope);
       //update dest
       c.to = "__COMPILER_LABLE_"+scope.func.name.value+"_"+c.to;
     } else if(c.type == "call"){
@@ -1245,7 +1245,7 @@ const decomposeExpressions = (()=>{
     } else if(l.type == "call"){
       //decompose call params
       dCall(l.params);
-    } else if(l.type == "branch"){
+    } else if(l.type == "branch" && l.condition){
       l.condition = dExpression(l.condition);
     }
   }
@@ -1701,7 +1701,11 @@ const stringify = (()=>{
           //o
           o += "TRS ALU-O,"+valify(c.to);
         } else if(c.type == "branch"){
-          o += "!defU cJump "+c.condition.value+" "+c.to;
+          if(c.condition){
+            o += "!defU cJump "+c.condition.value+" "+c.to;
+          } else {
+            o += "TRS "+c.to+",PC";
+          }
         } else if(c.type == "lable"){
           o += "LBL "+c.value;
         }
