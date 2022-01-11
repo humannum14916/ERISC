@@ -1686,14 +1686,21 @@ const stringify = (()=>{
           o += "TRS "+valify(c.value)+","+valify(c.dest);
         } else if(c.type == "dereference"){
           //ofset index
-          o += "TRS OP+,ALU-C\n";
+          o += "TRS 0,ALU-C\n";
           o += "TRS "+valify(c.thing)+",ALU-A\n";
           o += "TRS "+valify(c.index)+",ALU-B\n";
           o += "TRS ALU-O,$1\n";
           o += "TRS #0,"+valify(c.to);
         } else if(c.type == "op"){
           //setup op
-          o += "TRS OP"+c.opType+",ALU-C\n";
+          let op = {
+            "+":0,
+            "-":32,
+            ">":1,
+            "==":2,
+            "<":3,
+          }[c.opType];
+          o += "TRS "+op+",ALU-C\n";
           //a
           o += "TRS "+valify(c.a)+",ALU-A\n";
           //b
