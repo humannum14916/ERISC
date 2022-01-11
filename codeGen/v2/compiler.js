@@ -263,7 +263,7 @@ const parsing = (()=>{
         e.type == "token";
       }
     });
-    //recognize ->
+    //recognize -> and ==
     code = (code=>{
       let o = [];
       for(let c of code){
@@ -274,6 +274,13 @@ const parsing = (()=>{
         ){
           o.pop();
           o.push({type:"token",value:"->"});
+        } else if(
+          c.type == "token" && c.value == "=" &&
+          o[o.length - 1].type == "token" &&
+          o[o.length - 1].value == "="
+        ){
+          o.pop();
+          o.push({type:"token",value:"=="});
         } else {
           o.push(c);
         }
@@ -1290,14 +1297,14 @@ const decomposeExpressions = (()=>{
       }
       return o;
     })(e);
-    //->  & | ^  * / %  + -  && || ^^ !!  > < =
+    //->  & | ^  * / %  + -  && || ^^ !!  > < ==
     for(let o of [
       "->",
       "&","|","^",
       "*","/","%",
       "+","-",
       "&&","||","^^","!!",
-      ">","<","="
+      ">","<","=="
     ]){
       e = snapOp(e,o);
     }
