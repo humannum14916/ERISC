@@ -1746,7 +1746,7 @@ const stringify = (()=>{
         if(d.value.type == "int"){
           for(let i=0;i<d.value.value;i++) a.push(0);
         } else if(d.value.type == "string"){
-          a = d.value.value.split("");
+          a = d.value.value.split("").map(v=>{return "^"+v});
         } else if(d.value.type == "array"){
           a = d.value.value.map(valify);
         } else {
