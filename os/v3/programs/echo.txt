@@ -9,7 +9,7 @@ struct changePointers {
 define array[char] toPrint = 256;
 
 define array[char] changePath
-  = "/programs/shell";
+  = "/Programs/shell";
 
 define array[char] changeParam = 0;
 
