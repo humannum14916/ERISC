@@ -732,7 +732,7 @@ const parsing = (()=>{
         } else if(type == "else"){
           //else
           let body = line.shift();
-          checkType(body,"enclose");
+          typeCheck(body,"enclose");
           body = parseCodeBlock(body.contents);
           chain.push({type:"else",body});
         } else {
@@ -740,7 +740,7 @@ const parsing = (()=>{
         }
       }
       //return
-      out.push({type:"if",chain});
+      o.push({type:"if",chain});
     } else if(lineType == "while"){
       //parse condition
       let condition = line.shift();
