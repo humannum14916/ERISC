@@ -26,8 +26,14 @@ function stackless void MAIN(){
     //get current character
     set curChar = toPrint[i];
 
-    //print it
-    asm "!defU kCall 0 MAIN.toPrint";
+    //null check
+    if(curChar == 0){
+      //break
+      set i = toPrint->length;
+    } else {
+      //print it
+      asm "!defU kCall 0 MAIN.curChar";
+    };
   };
 
   //add a newline
