@@ -1879,7 +1879,7 @@ function compile(program,root){
   //userspace header
   metadata.forEach(m=>{
     if(m.key.value == "header"){
-      output = readFileSync(root+"headers/"+m.value.value)+output;
+      output = output+readFileSync(root+"headers/"+m.value.value);
     }
   });
   //code
