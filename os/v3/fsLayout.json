@@ -38,7 +38,7 @@
       "source":"programs/help.txt"
     },{
       "type":"executable",
-      "build":"asm",
+      "build":"cl",
       "name":"clear",
       "source":"programs/clear.txt"
     }]
