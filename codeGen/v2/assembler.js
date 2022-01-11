@@ -1,5 +1,5 @@
 const read = require("fs").readFileSync;
-const {decHex,hexDec} = require("../../utils/convert.js");
+const {decHex,hexDec,toASCII} = require("../../utils/convert.js");
 const {serve} = require("../../utils/ioWrap.js");
 
 function error(m,v){
@@ -115,7 +115,27 @@ function parse(code){
   let parsed = [];
   for(let line of lines){
     let op = line.slice(0,3);
-    let params = line.slice(4).trim().split(",");
+    let params = line.slice(4).trim().split(",").map(p=>{
+      let o = {direct:false,relative:false};
+      if(p[0] == "#"){
+        p = p.slice(1);
+        o.direct = true;
+      } else if(p[0] == "$"){
+        p = p.slice(1);
+        o.relative = true;
+        o.direct = true;
+      }
+      if(p[0] == "@"){
+        p = p.slice(1);
+        o.val = hexDec(p);
+      } else if(p[0] == "^"){
+        p = p.slice(1);
+        o.val = toASCII(p)[0];
+      } else {
+        o.val = p;
+      }
+      return o;
+    });
     parsed.push({op:op,params:params});
   }
   return parsed;
@@ -127,12 +147,15 @@ function compileP(parsed){
   for(let com of parsed){
     if(!(
       ((com.op == "LBL") && (com.params.length == 1)) ||
-      ((com.op == "TRS") && (com.params.length == 2))
+      ((com.op == "TRS") && (com.params.length == 2)) ||
+      ((com.op == "DEF") && (com.params.length == 2))
     )){
       error("Malformed instruction at "+num+": ",com);
     }
     for(let par of com.params){
-      if(par[0] != "$" && par[0] != "#") alls.push(par);
+      if(!par.direct){
+        alls.push(par.val);
+      }
     }
     num++
   }
@@ -146,13 +169,12 @@ function compileP(parsed){
   for(let l of parsed){
     if(l.op == "TRS"){
       for(let p of l.params){
-        if(p[0] == "@"){
-          adrs[p] = hexDec(p.slice(1));
-        }
         ops.push(p);
       }
     } else if(l.op == "LBL"){
-      adrs[l.params[0]] = ops.length;
+      adrs[l.params[0].val] = ops.length;
+    } else if(l.op == "DEF"){
+      adrs[l.params[0].val] = l.params[1].val;
     }
   }
   let next = ops.length;
@@ -187,14 +209,16 @@ function compileP(parsed){
   }
   let o = [];
   for(let op of ops) {
-    if(op[0] == "#"){
-      o.push(op.slice(1));
-    } else if(op[0] == "$") {
-      let ofs = op.slice(1)*1;
+     if(op.relative) {
+      let ofs = op.val*1;
       let pos = o.length;
       o.push(pos + ofs);
+    }else if(op.direct){
+      if(Number.isNaN(op.val*1)){
+        o.push(adrs[op.val].val);
+      } else o.push(op.val);
     } else {
-      o.push(adrs[op].adr);
+      o.push(adrs[op.val].adr);
     }
   }
   for(let a of Object.keys(adrs)){
