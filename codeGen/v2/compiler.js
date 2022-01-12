@@ -1549,7 +1549,7 @@ const expandExprs = (()=>{
   function typeStr(t){
     let o = t.name.value+"";
     if(t.subType){
-      o += "["+typeStr(t.subtype)+"]";
+      o += "["+typeStr(t.subType)+"]";
     }
     return o;
   }
