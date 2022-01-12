@@ -1764,7 +1764,7 @@ const stringify = (()=>{
             ",#"+asmVal(a.shift())+"\n";
         }
       } else if(
-        ["char","int","null","number"]
+        ["char","int","null","number","bool"]
         .indexOf(d.valType.name.value) != -1
       ){
         //simple type
