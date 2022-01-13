@@ -27,7 +27,7 @@ function stackless void MAIN(){
     set curChar = toPrint[i];
 
     //null check
-    if(curChar == 0){
+    if(curChar == null){
       //break
       set i = toPrint->length;
     } else {
