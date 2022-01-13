@@ -253,15 +253,24 @@ function lex(code,root){
         o[o.length - 1].type == "token" &&
         o[o.length - 1].value == "-"
       ){
-        o.pop();
-        o.push({type:"token",value:"->"});
+        let p = o.pop();
+        o.push({
+          type:"token",value:"->",
+          line:p.line,
+          column:p.column
+        });
       } else if(
         c.type == "token" && c.value == "=" &&
         o[o.length - 1].type == "token" &&
         o[o.length - 1].value == "="
       ){
-        o.pop();
-        o.push({type:"token",value:"=="});
+        let p = o.pop();
+        o.push({
+          type:"token",
+          value:"==",
+          line:p.line,
+          column:p.column
+        });
       } else {
         o.push(c);
       }
