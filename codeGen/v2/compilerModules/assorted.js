@@ -180,8 +180,14 @@ function extractLDefs(contents){
     if(l.type == "define"){
       defs.push(Object.assign({},l));
       l.type = "set";
-      l.exp = [l.value];
-      l.dest = [l.name];
+      l.exp = [{
+        type:"value",
+        value:Object.assign(l.value,{type:"word"})
+      }];
+      l.dest = [{
+        type:"value",
+        value:Object.assign(l.name,{type:"word"})
+      }];;
       delete l.name;
       delete l.valType;
       delete l.value;
