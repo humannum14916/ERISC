@@ -81,4 +81,15 @@ function hexDec(h){
   return result;
 }
 
-module.exports = {toASCII,fromASCII,decHex,hexDec};
+function binDec(b){
+  const values = ["0","1"];
+  let result = 0;
+  let bs = b.split("");
+  for(let d of bs){
+    result *= 2;
+    result += values.indexOf(d);
+  }
+  return result;
+}
+
+module.exports = {toASCII,fromASCII,decHex,hexDec,binDec};
