@@ -766,30 +766,43 @@ function parseCodeLine(line){
 function parseExpression(line){
   //parse expression
   let o = [];
+  let prev = "operator";
   while(true){
     //get value
     let value = line.shift();
     //check for call / access
     if(value.bound == "("){
-      //call
-      o.push({
-        type:"call",params:
-        parseCall(value.contents)
-      });
+      if(prev == "value"){
+        //call
+        o.push({
+          type:"call",params:
+          parseCall(value.contents)
+        });
+      } else {
+        //parens
+        o.push({
+          type:"parenthesis",contents:
+          parseExpression(value.contents)
+        });
+      }
+      prev = "value";
     } else if(value.bound == "["){
       //access
       o.push({
         type:"access",index:
         parseExpression(value.contents)
       });
+      prev = "value";
     } else if(value.type == "token"){
       //operator
       o.push({type:"operator",value});
+      prev = "operator";
     } else {
       //normal value
       o.push({
         type:"value",value:parseValue(value)
       });
+      prev = "value";
     }
     //possible end
     if(

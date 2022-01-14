@@ -31,7 +31,7 @@ function dExprLine(l){
 
 //actual decomposition
 function dExpression(e){
-  //access and call
+  //access, call, and parenthesis
   e = (e=>{
     let o = [];
     for(c of e){
@@ -51,8 +51,9 @@ function dExpression(e){
         let index = dExpression(c.index);
         //add back to expression
         o.push({type:"access",thing,index});
-      } else if(c.type != "operator" && c.type != "value"){
-        o.push({type:"value",value:c});
+      } else if(c.type == "parenthesis"){
+        //parenthesis
+        o.push(dExpression(c.contents));
       } else {
         o.push(c);
       }
@@ -90,6 +91,7 @@ function dExpression(e){
   //neaten
   e = e[0];
   //return
+  //console.error(e);
   return e;
 }
 
