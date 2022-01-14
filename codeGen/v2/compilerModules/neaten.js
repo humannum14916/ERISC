@@ -9,7 +9,7 @@ function neatenDefine(defines){
     delete d.name;
     //array length determination
     if(d.valType.name.value == "array"){
-      if(d.value.type == "int"){
+      if(d.value.type == "number"){
         d.length = d.value.value*1;
       } else if(
         d.value.type == "string" ||

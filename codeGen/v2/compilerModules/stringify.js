@@ -87,7 +87,7 @@ function stringifyD(ds,structs){
     if(d.valType.name.value == "array"){
       //array
       let a = [];
-      if(d.value.type == "int"){
+      if(d.value.type == "number"){
         for(let i=0;i<d.value.value;i++) a.push(0);
       } else if(d.value.type == "string"){
         a = d.value.value.split("").map(v=>{return "^"+v});
