@@ -52,149 +52,130 @@ function backResolveCallParams(g,o,temps,call,to,){
 }
 
 function backResolve(g,o,temps,exp,to,left=false){
-  if(exp.type){
-    //operation
-    if(exp.type == "access"){
-      //back resolve thing
-      let thing = backResolve(
-        g,o,temps,exp.thing
+  //operation
+  if(exp.type == "access"){
+    //back resolve thing
+    let thing = backResolve(
+      g,o,temps,exp.thing
+    );
+    //back resolve index
+    let index = backResolve(
+      g,o,temps,exp.index
+    );
+    //left-side logic
+    if(left){
+      o.push({
+        type:"derefNset",
+        thing,index
+      });
+      return;
+    }
+    //get destination
+    if(!to){
+      to = getTemp(
+        g,temps,varType(g,thing).subType
       );
-      //back resolve index
-      let index = backResolve(
-        g,o,temps,exp.index
-      );
+    }
+    //add
+    o.push({
+      type:"dereference",
+      thing,index,to
+    });
+    return {type:"word",value:to};
+  } else if(exp.type == "call"){
+    //resolve call
+    exp.name = exp.name.value
+    backResolveCallParams(g,o,temps,exp,to);
+  } else if(exp.type == "value"){
+    if(left){
+      return exp.value;
+    }
+    if(to){
+      o.push({
+        type:"set",dest:to,value:exp.value
+      });
+      return {type:"word",value:to};
+    }
+    return exp.value;
+  } else if(exp.type == "->"){
+    if(
+      exp.a.value.type != "word" ||
+      exp.b.value.type != "word"
+    ){
+      console.error(exp);
+      misc.error("Indirect struct access is not supported");
+    }
+    if(
+      exp.b.value.value == "length" &&
+      varType(g,exp.a.value).name.value
+        == "array"
+    ){
+      if(left) misc.error("Cannot use array length as set destination");
+      //length
+      let length = {
+        type:"number",value:g.define
+          [exp.a.value.value].length
+      };
+      if(to){
+        o.push({
+          type:"set",dest:to,value:length
+        });
+        return {type:"word",value:to};
+      }
+      return length;
+    } else {
+      //struct access
+      let slot = g.struct.filter(s=>{
+        return s.name == g.define
+        [exp.a.value.value]
+        .valType.name.value
+      })[0].slots[exp.b.value.value];
+      //get destination
+      if(!to){
+        to = getTemp(
+          g,temps,slot.type
+        );
+      }
       //left-side logic
       if(left){
         o.push({
           type:"derefNset",
-          thing,index
+          thing:exp.a.value,index:slot.index
         });
-        return;
-      }
-      //get destination
-      if(!to){
-        to = getTemp(
-          g,temps,varType(g,thing).subType
-        );
+        return
       }
       //add
       o.push({
         type:"dereference",
-        thing,index,to
-      });
-      return {type:"word",value:to};
-    } else if(exp.type == "call"){
-      //resolve call
-      exp.name = exp.name.value
-      backResolveCallParams(g,o,temps,exp,to);
-    } else if(exp.type == "value"){
-      if(left){
-        return exp.value;
-      }
-      if(to){
-        o.push({
-          type:"set",dest:to,value:exp.value
-        });
-        return {type:"word",value:to};
-      }
-      return exp.value;
-    } else if(exp.type == "->"){
-      if(
-        exp.a.value.type != "word" ||
-        exp.b.value.type != "word"
-      ){
-        console.error(exp);
-        misc.error("Indirect struct access is not supported");
-      }
-      if(
-        exp.b.value.value == "length" &&
-        varType(g,exp.a.value).name.value
-          == "array"
-      ){
-        if(left) misc.error("Cannot use array length as set destination");
-        //length
-        let length = {
-          type:"number",value:g.define
-            [exp.a.value.value].length
-        };
-        if(to){
-          o.push({
-            type:"set",dest:to,value:length
-          });
-          return {type:"word",value:to};
-        }
-        return length;
-      } else {
-        //struct access
-        let slot = g.struct.filter(s=>{
-          return s.name == g.define
-          [exp.a.value.value]
-          .valType.name.value
-        })[0].slots[exp.b.value.value];
-        //get destination
-        if(!to){
-          to = getTemp(
-            g,temps,slot.type
-          );
-        }
-        //left-side logic
-        if(left){
-          o.push({
-            type:"derefNset",
-            thing:exp.a.value,index:slot.index
-          });
-          return
-        }
-        //add
-        o.push({
-          type:"dereference",
-          thing:exp.a.value,index:slot.index,to
-        });
-        return {type:"word",value:to};
-      }
-    } else {
-      if(left){
-        console.error(exp);
-        misc.error("Cannot use arithmatic in left side")
-      }
-      //resolve a
-      let a = backResolve(
-        g,o,temps,exp.a
-      );
-      //resolve b
-      let b = backResolve(
-        g,o,temps,exp.b
-      );
-      //get destination
-      if(!to){
-        to = getTemp(
-          g,temps,{name:{type:"word",value:"number"}}//temp fix
-        );
-      }
-      //add
-      o.push({
-        type:"op",
-        opType:exp.type,
-        a,b,to
+        thing:exp.a.value,index:slot.index,to
       });
       return {type:"word",value:to};
     }
   } else {
     if(left){
-      return exp[0].value;
+      console.error(exp);
+      misc.error("Cannot use arithmatic in left side")
     }
-    //value
-    exp = exp[0];
-    if(exp.type == "value")
-      exp.type = varType(g,exp);
-    exp.type = toType(exp.type);
+    //resolve a
+    let a = backResolve(
+      g,o,temps,exp.a
+    );
+    //resolve b
+    let b = backResolve(
+      g,o,temps,exp.b
+    );
     //get destination
     if(!to){
-      //get temp
-      to = getTemp(g,temps,exp.type);
+      to = getTemp(
+        g,temps,{name:{type:"word",value:"number"}}//temp fix
+      );
     }
-    //set destination
-    o.push({type:"set",dest:to,value:exp});
+    //add
+    o.push({
+      type:"op",
+      opType:exp.type,
+      a,b,to
+    });
     return {type:"word",value:to};
   }
 }
