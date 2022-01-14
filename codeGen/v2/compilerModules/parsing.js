@@ -1,4 +1,5 @@
 const misc = require("./misc.js");
+const convert = require("../../../utils/convert.js");
 
 //lexing
 function lex(code,root){
@@ -587,17 +588,21 @@ function parseValue(value){
   if(value.type == "word"){
     if(/^\d+$/.test(value.value)){
       //decimal
-      value.type = "int";
+      value.type = "number";
     } else if(value.value.slice(0,2) == "0x"){
       //hexadecimal
-      value.type = "hex";
+      value.value = convert.hexDec(value.value.slice(2));
+      value.type = "number";
     } else if(
       value.value[value.value.length - 1] == "b" &&
       /^[01]+$/
-      .test(value.value.slice(value.value.length-1))
+      .test(value.value.slice(0,value.value.length-1))
     ) {
       //binary
-      value.type = "binary";
+      value.value = convert.binDec(
+        value.value.slice(0,value.value.length-1)
+      );
+      value.type = "number";
     } else if(value.value == "null"){
       value.type = "null";
     }
