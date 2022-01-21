@@ -180,21 +180,11 @@ function extractLDefs(contents){
     if(l.type == "define"){
       defs.push(Object.assign({},l));
       l.type = "set";
-      l.exp = [{
-        type:"value",
-        value:Object.assign(l.value,{type:"word"})
-      }];
-      l.dest = [{
-        type:"value",
-        value:Object.assign(l.name,{type:"word"})
-      }];;
+      l.exp = [{type:"value",value:l.value}];
+      l.dest = [{type:"value",value:l.name}];
       delete l.name;
       delete l.valType;
       delete l.value;
-    } else if(l.type == "for"){
-      defs = defs
-        .concat(extractLDefs([l.init]))
-        .concat(extractLDefs(l.body));
     }
   }
   return defs;
