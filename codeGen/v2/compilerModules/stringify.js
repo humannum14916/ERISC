@@ -43,6 +43,8 @@ function stringifyF(f){
           "==":2,
           "<":3,
         }[c.opType];
+        if(op == undefined)
+          misc.error(`[Dev] Op ${c.opType} needs an ALU config!`);
         o += "TRS "+op+",ALU-C\n";
         //a
         o += "TRS "+valify(c.a)+",ALU-A\n";
