@@ -83,7 +83,9 @@ function defCollectLine(c,defs,prefix){
   if(c.type == "define" || c.type == "function"){
     //check for name collisions
     let collision = defs.defined(c.name.value);
-    if(collision) misc.error("Name collision over "+collision.value+formAt(collision),c);
+    if(collision){
+      misc.error("Name collision over "+collision.name.value+", defined "+misc.formAt(collision.name),c.name);
+    }
     //prefix name
     let nameBase = c.name.value;
     c.name.value = prefix + nameBase;
