@@ -172,22 +172,30 @@ function backResolve(g,o,temps,exp,to,left=false){
     if(b) bt = typeStr(compType(g,b));
     //type check
     let opReq = {
-      "+":[["int"],["int"]],
-      "-":[["int"],["int"]],
-      "==":[["any"],["any"]],
-      ">":[["int","char"],["int","char"]],
-      "<":[["int","char"],["int","char"]],
-      "&":[["any"],["any"]],
-      "~":[["bool"],[undefined]],
+      "+":{types:[["int"],["int"]],match:true},
+      "-":{types:[["int"],["int"]],match:true},
+      "==":{types:["any","any"],match:true},
+      ">":{types:[
+        ["int","char"],["int","char"]
+      ],match:true},
+      "<":{types:[
+        ["int","char"],["int","char"]
+      ],match:true},
+      "&":{types:[
+        ["int","bool","char"],
+        ["int","bool","char"]
+      ],match:true},
+      "~":{types:[
+        ["bool"],[undefined]
+      ],match:false},
     }[exp.type];
     if(!opReq) misc.error("[Dev] Op needs type requirements! "+exp.type);
     if(at != "null" && bt != "null"){
-      if(opReq == "same"){
-        if(at != bt) misc.error("Operator \""+exp.type+"\" takes two same types, got "+at+" and "+bt);
-      } else {
-        if(at != opReq[0]) misc.error("Operator \""+exp.type+"\" takes type "+opReq[0]+" as first param, got "+at);
-        if(bt != opReq[1]) misc.error("Operator \""+exp.type+"\" takes type "+opReq[1]+" as first param, got "+bt);
-      }
+      if(at != bt && opReq.match) misc.error(`Mismatched types to operator ${exp.type}, got ${at} and ${bt}`);
+      if(opReq.types[0].indexOf(at) == -1 && opReq.types[0] != "any")
+        misc.error(`Operator ${exp.type} requires one of types ${opReq.types[0].join(", ")}, got ${at}`);
+      if(opReq.types[1].indexOf(bt) == -1 && opReq.types[1] != "any")
+        misc.error(`Operator ${exp.type} requires one of types ${opReq.types[1].join(", ")}, got ${bt}`);
     }
     //get output type
     let outType = {
@@ -197,7 +205,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       ">":{name:{type:"word",value:"bool"}},
       "<":{name:{type:"word",value:"bool"}},
       "&":"left",
-      "!":{name:{type:"word",value:"bool"}},
+      "~":{name:{type:"word",value:"bool"}},
     }[exp.type];
     if(outType == "left")
       outType = {name:{type:"word",value:at}};
