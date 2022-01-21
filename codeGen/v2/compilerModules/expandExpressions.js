@@ -153,7 +153,6 @@ function backResolve(g,o,temps,exp,to,left=false){
     }
   } else {
     if(left){
-      console.error(exp);
       misc.error("Cannot use arithmatic in left side")
     }
     //resolve a
@@ -161,12 +160,16 @@ function backResolve(g,o,temps,exp,to,left=false){
       g,o,temps,exp.a
     );
     //resolve b
-    let b = backResolve(
-      g,o,temps,exp.b
-    );
+    let b;
+    if(exp.b){
+      b = backResolve(
+        g,o,temps,exp.b
+      );
+    }
     //get types
     let at = typeStr(compType(g,a));
-    let bt = typeStr(compType(g,b));
+    let bt;
+    if(b) bt = typeStr(compType(g,b));
     //type check
     let opReq = {
       "+":["int","int"],
