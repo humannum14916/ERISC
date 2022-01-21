@@ -1,4 +1,4 @@
-; ERSIC OS 4.0 clear Command
+; ERSIC OS v2 clear Command
 !link utils/macros.txt
 
 !defU StartUser

@@ -1,4 +1,4 @@
-; ERSIC OS 4.0 echo Command
+; ERSIC OS v2 echo Command
 !link utils/macros.txt
 
 !defU StartUser
