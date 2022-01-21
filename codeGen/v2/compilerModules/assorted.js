@@ -17,7 +17,7 @@ function branchify(contents,lprefix=""){
   for(let c of contents){
     if(c.type == "while"){
       //create and add lable
-      let lable = lprefix+"for_"+nextLable;
+      let lable = lprefix+"while_"+nextLable;
       nextLable++;
       o.push({type:"lable",value:lable});
       //branchify body
