@@ -11,7 +11,7 @@ class Scope {
     this.func = func;
   }
   defined(name){
-    if(this.values[name]) return this.value[name];
+    if(this.values[name]) return this.values[name];
     return this.parent.defined(name);
   }
   resolve(name){
