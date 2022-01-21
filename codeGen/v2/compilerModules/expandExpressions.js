@@ -164,11 +164,39 @@ function backResolve(g,o,temps,exp,to,left=false){
     let b = backResolve(
       g,o,temps,exp.b
     );
+    //get types
+    let at = typeStr(compType(g,a));
+    let bt = typeStr(compType(g,b));
+    //type check
+    let opReq = {
+      "+":["int","int"],
+      "-":["int","int"],
+      "==":"same",
+      ">":["int","int"],
+      "<":["int","int"],
+    }[exp.type];
+    if(!opReq) misc.error("[Dev] Op needs type requirements! "+exp.type);
+    if(at != "null" && bt != "null"){
+      if(opReq == "same"){
+        if(at != bt) misc.error("Operator \""+exp.type+"\" takes two same types, got "+at+" and "+bt);
+      } else {
+        if(at != opReq[0]) misc.error("Operator \""+exp.type+"\" takes type "+opReq[0]+" as first param, got "+at);
+        if(bt != opReq[1]) misc.error("Operator \""+exp.type+"\" takes type "+opReq[1]+" as first param, got "+bt);
+      }
+    }
+    //get output type
+    let outType = {
+      "+":{name:{type:"word",value:"int"}},
+      "-":{name:{type:"word",value:"int"}},
+      "==":{name:{type:"word",value:"bool"}},
+      ">":{name:{type:"word",value:"bool"}},
+      "<":{name:{type:"word",value:"bool"}},
+    }[exp.type];
     //get destination
     if(!to){
-      to = getTemp(
-        g,temps,{name:{type:"word",value:"number"}}//temp fix
-      );
+      to = {type:"word",value:getTemp(
+        g,temps,outType
+      )};
     }
     //add
     o.push({
@@ -176,7 +204,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       opType:exp.type,
       a,b,to
     });
-    return {type:"word",value:to};
+    return to;
   }
 }
 
@@ -224,6 +252,12 @@ function toType(t){
 
 function varType(g,varN){
   return g.define[varN.value].valType;
+}
+
+function compType(g,c){
+  if(c.type == "number") return {name:{type:"word",value:"int"}};
+  if(c.type == "null") return {name:{type:"word",value:"null"}};
+  if(c.type == "word") return varType(g,c);
 }
 
 //export
