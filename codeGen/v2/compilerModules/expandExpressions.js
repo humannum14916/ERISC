@@ -178,6 +178,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       ">":["int","int"],
       "<":["int","int"],
       "&":"same",
+      "!":["bool",undefined]
     }[exp.type];
     if(!opReq) misc.error("[Dev] Op needs type requirements! "+exp.type);
     if(at != "null" && bt != "null"){
@@ -196,6 +197,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       ">":{name:{type:"word",value:"bool"}},
       "<":{name:{type:"word",value:"bool"}},
       "&":"left",
+      "!":{name:{type:"word",value:"bool"}},
     }[exp.type];
     if(outType == "left")
       outType = {name:{type:"word",value:at}};
