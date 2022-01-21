@@ -45,16 +45,31 @@ function stringifyF(f){
           "==":2,
           "<":3,
           "&":4,//TEMP
-          "!":5,//TEMP
+          "~":5,//TEMP
+          "!":(a,b,out)=>{
+            //bitwise not
+            o += "TRS 5,ALU-C\n";//TEMP
+            o += "TRS 0,ALU-A\n";
+            o += "TRS ALU-O,ALU-B\n";
+            o += `TRS ${valify(a)},ALU-A\n`;
+            o += "TRS ALU-O,ALU-A\n";
+            //and off top
+            o += "TRS 4,ALU-C\n";//TEMP
+            o += `TRS ALU-O,${valify(out)}\n`;
+          }
         }[c.opType];
         if(op == undefined)
           misc.error(`[Dev] Op ${c.opType} needs an ALU config!`);
-        o += "TRS "+op+",ALU-C\n";
-        //a
-        o += "TRS "+valify(c.a)+",ALU-A\n";
-        //b
-        if(c.b)
-          o += "TRS "+valify(c.b)+",ALU-B\n";
+        if(typeof(op)=="number"){
+          o += "TRS "+op+",ALU-C\n";
+          //a
+          o += "TRS "+valify(c.a)+",ALU-A\n";
+          //b
+          if(c.b)
+            o += "TRS "+valify(c.b)+",ALU-B\n";
+        } else {
+          op(c.a,c.b,c.to);
+        }
         //o
         o += "TRS ALU-O,"+valify(c.to);
       } else if(c.type == "branch"){

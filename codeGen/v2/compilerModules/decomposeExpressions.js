@@ -68,9 +68,26 @@ function dExpression(e){
       if(cur.type == "operator" && cur.value.value == "~"){
         //get value to invert
         let val = e.shift();
-        if(!val) misc.error("cannot end and expression with ~",cur);
+        if(!val) misc.error("Cannot end and expression with ~",cur);
         //add
         o.push({type:"~",a:val});
+      } else {
+        o.push(cur);
+      }
+    }
+    return o;
+  })(e);
+  //!
+  e = (e=>{
+    let o = [];
+    while(e.length != 0){
+      let cur = e.shift();
+      if(cur.type == "operator" && cur.value.value == "!"){
+        //get value to invert
+        let val = e.shift();
+        if(!val) misc.error("Cannot end and expression with !",cur);
+        //add
+        o.push({type:"!",a:val});
       } else {
         o.push(cur);
       }
