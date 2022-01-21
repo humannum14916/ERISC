@@ -183,6 +183,9 @@ function nameResolveExpression(e,scope){
     } else if(c.type == "access"){
       //resolve index
       nameResolveExpression(c.index,scope);
+    } else if(c.type == "parenthesis"){
+      //resolve contents
+      nameResolveExpression(c.contents,scope);
     }
   }
 }
