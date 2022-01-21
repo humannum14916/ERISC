@@ -49,12 +49,11 @@ function stringifyF(f){
           "!":(a,b,out)=>{
             //bitwise not
             o += "TRS 5,ALU-C\n";//TEMP
-            o += "TRS 0,ALU-A\n";
-            o += "TRS ALU-O,ALU-B\n";
             o += `TRS ${valify(a)},ALU-A\n`;
             o += "TRS ALU-O,ALU-A\n";
             //and off top
             o += "TRS 4,ALU-C\n";//TEMP
+            o += "TRS 1,ALU-B\n";
             o += `TRS ALU-O,${valify(out)}\n`;
           }
         }[c.opType];
@@ -67,11 +66,11 @@ function stringifyF(f){
           //b
           if(c.b)
             o += "TRS "+valify(c.b)+",ALU-B\n";
+          //o
+          o += "TRS ALU-O,"+valify(c.to);
         } else {
           op(c.a,c.b,c.to);
         }
-        //o
-        o += "TRS ALU-O,"+valify(c.to);
       } else if(c.type == "branch"){
         if(c.condition){
           o += "!defU cJump "+c.condition.value+" "+c.to;
