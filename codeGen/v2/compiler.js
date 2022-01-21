@@ -91,7 +91,7 @@ function compile(program,root){
   //code
   output += functions + defines;
   //return
-  return output
+  return output;
 }
 
 const {readFileSync} = require("fs");
