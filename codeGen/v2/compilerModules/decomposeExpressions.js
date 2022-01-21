@@ -91,7 +91,6 @@ function dExpression(e){
   //neaten
   e = e[0];
   //return
-  //console.error(e);
   return e;
 }
 
