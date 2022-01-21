@@ -192,7 +192,10 @@ function backResolve(g,o,temps,exp,to,left=false){
       "==":{name:{type:"word",value:"bool"}},
       ">":{name:{type:"word",value:"bool"}},
       "<":{name:{type:"word",value:"bool"}},
+      "&":"left",
     }[exp.type];
+    if(outType == "left")
+      outType = {name:{type:"word",value:at}};
     //get destination
     if(!to){
       to = {type:"word",value:getTemp(
@@ -259,6 +262,10 @@ function compType(g,c){
   if(c.type == "number") return {name:{type:"word",value:"int"}};
   if(c.type == "null") return {name:{type:"word",value:"null"}};
   if(c.type == "word") return varType(g,c);
+  if(c.type == "string"){
+    if(c.value.length != 1) misc.error(`Character strings must be length 1, got "${c.value}"`,c);
+    return {name:{type:"word",value:"char"}};
+  }
 }
 
 //export
