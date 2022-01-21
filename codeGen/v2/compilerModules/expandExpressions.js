@@ -172,13 +172,13 @@ function backResolve(g,o,temps,exp,to,left=false){
     if(b) bt = typeStr(compType(g,b));
     //type check
     let opReq = {
-      "+":["int","int"],
-      "-":["int","int"],
-      "==":"same",
-      ">":["int","int"],
-      "<":["int","int"],
-      "&":"same",
-      "!":["bool",undefined]
+      "+":[["int"],["int"]],
+      "-":[["int"],["int"]],
+      "==":[["any"],["any"]],
+      ">":[["int","char"],["int","char"]],
+      "<":[["int","char"],["int","char"]],
+      "&":[["any"],["any"]],
+      "~":[["bool"],[undefined]],
     }[exp.type];
     if(!opReq) misc.error("[Dev] Op needs type requirements! "+exp.type);
     if(at != "null" && bt != "null"){
