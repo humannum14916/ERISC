@@ -42,6 +42,7 @@ function stringifyF(f){
           ">":1,
           "==":2,
           "<":3,
+          "&":4,//TEMP
         }[c.opType];
         if(op == undefined)
           misc.error(`[Dev] Op ${c.opType} needs an ALU config!`);
