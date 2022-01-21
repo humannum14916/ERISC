@@ -1,54 +1,30 @@
-; ERSIC OS 4.0 clear Command
-!link utils/macros.txt
 
-!defU StartUser
+meta header userspace;
 
+struct changePointers {
+  array[char] toPath,
+  array[char] param
+};
 
-TRS ChangeProg-Pointers,$2
-TRS ChangeProg-DestPath,#0
-TRS ChangeProg-Pointers,ChangeProg-Pointer2
-!defU Incrament ChangeProg-Pointer2
-TRS ChangeProg-Pointer2,$2
-TRS ChangeProg-Params,#0
+define array[char] changePath
+  = "/Programs/shell";
 
+define array[char] changeParam = 0;
 
-LBL AddLine
+define changePointers returnToShell
+  = {toPath: changePath, param: changeParam}; 
 
-; Add a newline
-!defU kCall 0 10
+function stackless void MAIN(){
+  //print 15 \ns
+  for(define int i=0;i<15;set i=i+1){
+    asm "!defU kCall 0 10";
+  };
 
-!defU Compare Lines 14 Temp
-!defU cJump Temp Done
+  //return to the shell
+  asm "!defU kCall 3 returnToShell";
+};
 
-!defU Incrament Lines
-
-TRS AddLine,PC
-LBL Done
-
-; Return to the shell
-!defU kCall 3 ChangeProg-Pointers
-
-
-; Ignore character input
-LBL INTERRUPT
-!defU kCall 1 0
-TRS INTERRUPT,PC
-
-
-; Program change info
-LBL ChangeProg-Pointers
-TRS #0,#0
-
-LBL ChangeProg-DestPath
-; /Programs/shell
-TRS #47,#80
-TRS #114,#111
-TRS #103,#114
-TRS #97,#109
-TRS #115,#47
-TRS #115,#104
-TRS #101,#108
-TRS #108,#0
-
-LBL ChangeProg-Params
-TRS #0,#0
+function stackless void INTERRUPT(){
+  //ignore character input
+  asm "!defU kCall 1 0";
+};
