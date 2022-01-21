@@ -81,7 +81,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       type:"dereference",
       thing,index,to
     });
-    return {type:"word",value:to};
+    return to;
   } else if(exp.type == "call"){
     //resolve call
     exp.name = exp.name.value
