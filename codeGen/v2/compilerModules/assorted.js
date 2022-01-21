@@ -69,6 +69,8 @@ function branchify(contents,lprefix=""){
           to:e.startLable
         });
       }
+      //default condition
+      o.push({type:"branch",to:endLable});
       //add exit jumps and start lables
       for(let e of c.chain){
         e.body.unshift({
