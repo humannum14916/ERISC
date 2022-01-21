@@ -45,6 +45,7 @@ function stringifyF(f){
           "==":2,
           "<":3,
           "&":4,//TEMP
+          "!":5,//TEMP
         }[c.opType];
         if(op == undefined)
           misc.error(`[Dev] Op ${c.opType} needs an ALU config!`);
@@ -52,7 +53,8 @@ function stringifyF(f){
         //a
         o += "TRS "+valify(c.a)+",ALU-A\n";
         //b
-        o += "TRS "+valify(c.b)+",ALU-B\n";
+        if(c.b)
+          o += "TRS "+valify(c.b)+",ALU-B\n";
         //o
         o += "TRS ALU-O,"+valify(c.to);
       } else if(c.type == "branch"){
