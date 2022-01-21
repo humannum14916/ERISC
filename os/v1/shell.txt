@@ -1,4 +1,4 @@
-; ERISC OS 3.0
+; ERISC OS v1
 ; Command line
 
 !link macros.txt
