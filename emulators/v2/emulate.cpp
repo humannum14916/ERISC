@@ -186,6 +186,8 @@ unsigned int alu_calculate(){
     return (alu_inputA < alu_inputB)?1:0;
   } else if(alu_config == 4){
     return alu_inputA & alu_inputB;//TEMP
+  } else if(alu_config == 5){
+    return ~alu_inputA;//TEMP
   } else {
     error("Undefined ALU config: "+decHex(alu_config));
   }
