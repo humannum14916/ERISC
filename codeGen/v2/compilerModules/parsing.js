@@ -336,7 +336,7 @@ function parseStructureBlock(code){
       ) line.push(code.shift());
     } catch(e){
       if(code.length == 0){
-        error("Unexpected end, you probably forgot a semicolon somewhere");
+        misc.error("Unexpected end, you probably forgot a semicolon somewhere");
       } else throw e;
     }
     code.shift();
@@ -489,7 +489,7 @@ function parseStructureBlock(code){
             }
           });
         }
-      } else error("Stack functions aren't done yet :(",name);
+      } else misc.error("Stack functions aren't done yet :(",name);
       //return
       o.push({
         type:"function",stackless,retType,
@@ -509,10 +509,10 @@ function parseStructureBlock(code){
         type:"namespace",name,contents
       });
     } else {
-      error("Expected line start, got \""+lineType+"\"",lineTypeF);
+      misc.error("Expected line start, got \""+lineType+"\"",lineTypeF);
     }
     //check for excess
-    if(line.length != 0) error("Excess after expected end of line",line[0]);
+    if(line.length != 0) misc.error("Excess after expected end of line",line[0]);
   }
   //return
   return o;
@@ -530,7 +530,7 @@ function parseType(line){
     misc.typeCheck(subType,"enclose");
     subType = subType.contents;
     subType = parseType(subType);
-    if(subType.rest.length != 0) error("Unexpected remainder in array type",type);
+    if(subType.rest.length != 0) misc.error("Unexpected remainder in array type",type);
     subType = subType.value;
   }
   //return
@@ -582,7 +582,7 @@ function parseValue(value){
     value.type == "word" ||
     value.type == "string"
   )){
-    error("Expected word, string, or enclose, but got "+value.type,value);
+    misc.error("Expected word, string, or enclose, but got "+value.type,value);
   }
   //numbers, hex, binary, and null
   if(value.type == "word"){
@@ -731,7 +731,7 @@ function parseCodeLine(line){
         body = parseCodeBlock(body.contents);
         chain.push({type:"else",body});
       } else {
-        error("Expected \"elif\" or \"else\", got \""+type+"\"",typeR);
+        misc.error("Expected \"elif\" or \"else\", got \""+type+"\"",typeR);
       }
     }
     //return
@@ -760,10 +760,10 @@ function parseCodeLine(line){
     o.push({type:"call",name,params});
   } else {
     console.error(o);
-    error("Expected line start, got \""+lineType+"\"",lineTypeF);
+    misc.error("Expected line start, got \""+lineType+"\"",lineTypeF);
   }
   //check for excess
-  if(line.length != 0) error("Excess after expected end of line",line[0]);
+  if(line.length != 0) misc.error("Excess after expected end of line",line[0]);
   //return
   return o[0];
 }
