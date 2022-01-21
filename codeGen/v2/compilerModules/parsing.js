@@ -236,15 +236,6 @@ function lex(code,root){
     }
     return codeO;
   })(code);
-  //recognize || && ^^ and !!
-  code.forEach(e=>{
-    if(
-      e.type == "word" &&
-      ["&&","||","^^","!!"].indexOf(e.value) != -1
-    ) {
-      e.type == "token";
-    }
-  });
   //recognize -> and ==
   code = (code=>{
     let o = [];
