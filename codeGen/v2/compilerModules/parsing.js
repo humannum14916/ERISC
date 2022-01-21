@@ -204,7 +204,7 @@ function lex(code,root){
   code.forEach(c=>{
     if(
       c.type == "character"
-      && ";,:=&|!+-*/><".indexOf(c.value) != -1
+      && ";,:=&|!+-*/><~".indexOf(c.value) != -1
     ) {
       c.type = "token";
     }
