@@ -72,9 +72,9 @@ function backResolve(g,o,temps,exp,to,left=false){
     }
     //get destination
     if(!to){
-      to = getTemp(
+      to = {type:"word",value:getTemp(
         g,temps,varType(g,thing).subType
-      );
+      )};
     }
     //add
     o.push({
