@@ -65,12 +65,12 @@ function dExpression(e){
     let o = [];
     while(e.length != 0){
       let cur = e.shift();
-      if(cur.type == "token" && cur.value == "!"){
+      if(cur.type == "operator" && cur.value.value == "!"){
         //get value to invert
         let val = e.shift();
         if(!val) misc.error("cannot end and expression with !",cur);
         //add
-        o.push({type:"!",value:val});
+        o.push({type:"!",a:val});
       } else {
         o.push(cur);
       }
