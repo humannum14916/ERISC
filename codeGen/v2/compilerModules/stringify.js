@@ -11,7 +11,7 @@ function valify(v){
   } else if(v.type == "word"){
     v = v.value;
   } else if(v.type == "string"){
-    v = "#^"+v.value[0];
+    v = "^"+v.value[0];
   }
   return v;
 }
