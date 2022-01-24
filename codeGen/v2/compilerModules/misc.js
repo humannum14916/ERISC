@@ -3,9 +3,9 @@ function error(m,at){
   if(at){
     console.error(formAt(at));
     console.error(error.file.split("\n")[at.line-1]);
-    console.error(" ".repeat(at.column-1)+"^");
+    console.error(" ".repeat(Math.max(at.column-1 ,0))+"^");
   }
-  null.f;//process.exit(1);
+  process.exit(1);
 }
 
 function formAt(at){
