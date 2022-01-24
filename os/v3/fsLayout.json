@@ -18,7 +18,7 @@
       "source":"programs/echo.txt"
     },{
       "type":"executable",
-      "build":"asm",
+      "build":"cl",
       "name":"ls",
       "source":"programs/ls.txt"
     },{
