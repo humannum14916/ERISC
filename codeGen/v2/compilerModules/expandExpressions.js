@@ -36,10 +36,12 @@ function backResolveCallParams(g,o,temps,call,to,){
   //resolve params
   for(let i=0;i<call.params.length;i++){
     call.params[i] = backResolve(
-      g,o,temps,call.params[i],"__COMPILER-PARAM-"+
+      g,o,temps,call.params[i],
+      {type:"word",value:
+      "__COMPILER-PARAM-"+
       call.name.value+"-"+g.function.filter(
         p=>{return p.name == call.name.value}
-      )[0].params[i].name.value
+      )[0].params[i].name.value}
     );
   }
   //add call
