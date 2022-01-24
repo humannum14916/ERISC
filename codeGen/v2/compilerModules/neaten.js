@@ -16,6 +16,8 @@ function neatenDefine(defines){
         d.value.type == "array"
       ){
         d.length = d.value.value.length;
+      } else if(d.value.type == "null"){
+        d.length = 0;
       } else {
         misc.error("Cannot use type "+d.value.type+" as array initial value",d.value);
       }
