@@ -11,10 +11,13 @@ function expand(f,g){
   //loop through contents
   for(let c of f.contents){
     if(c.type == "set"){
-      let to = backResolve(g,o,temps,c.dest,null,true);
+      let {to,writeDest} = backResolve(
+        g,o,temps,c.dest,null,true
+      );
       let f = backResolve(g,o,temps,c.exp,to);
+      o = o.concat(writeDest);
       if(!to){
-        o[o.length-1].value = f;
+        o[o.length - 1].value = f;
       }
     } else if(c.type == "branch" && c.condition){
       c.condition = backResolve(g,o,temps,c.condition);
@@ -64,11 +67,10 @@ function backResolve(g,o,temps,exp,to,left=false){
     );
     //left-side logic
     if(left){
-      o.push({
+      return {writeDest:[{
         type:"derefNset",
         thing,index
-      });
-      return;
+      }]};
     }
     //get destination
     if(!to){
@@ -88,7 +90,7 @@ function backResolve(g,o,temps,exp,to,left=false){
     backResolveCallParams(g,o,temps,exp,to);
   } else if(exp.type == "value"){
     if(left){
-      return exp.value;
+      return {to:exp.value,writeDest:[]};
     }
     if(to){
       o.push({
@@ -110,7 +112,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       varType(g,exp.a.value).name.value
         == "array"
     ){
-      if(left) misc.error("Cannot use array length as set destination");
+      if(left) misc.error("Cannot use array length as set destination",exp.a.value);
       //length
       let length = {
         type:"number",value:g.define
@@ -138,11 +140,10 @@ function backResolve(g,o,temps,exp,to,left=false){
       }
       //left-side logic
       if(left){
-        o.push({
+        return {writeDest:[{
           type:"derefNset",
           thing:exp.a.value,index:slot.index
-        });
-        return
+        }]};
       }
       //add
       o.push({
@@ -153,7 +154,7 @@ function backResolve(g,o,temps,exp,to,left=false){
     }
   } else {
     if(left){
-      misc.error("Cannot use arithmatic in left side")
+      misc.error("Cannot use arithmatic result as set destination",exp.a.value);
     }
     //resolve a
     let a = backResolve(
