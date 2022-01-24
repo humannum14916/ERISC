@@ -33,7 +33,7 @@
       "source":"programs/cat.txt"
     },{
       "type":"executable",
-      "build":"asm",
+      "build":"cl",
       "name":"help",
       "source":"programs/help.txt"
     },{
