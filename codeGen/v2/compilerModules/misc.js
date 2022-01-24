@@ -13,6 +13,7 @@ function formAt(at){
 }
 
 function typeCheck(v,e,ev){
+  if(!v) error(`Expected ${e}, got undefined`);
   if(v.type != e) error("Expected "+e+", got "+v.type,v);
   if(ev && v.value != ev) error("Expected "+ev+", got "+v.value,v);
 }
