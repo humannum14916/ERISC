@@ -132,6 +132,8 @@ function backResolve(g,o,temps,exp,to,left=false){
         [exp.a.value.value]
         .valType.name.value
       })[0].slots[exp.b.value.value];
+      //get index
+      let index = {type:"number",value:slot.index};
       //get destination
       if(!to){
         to = getTemp(
@@ -142,13 +144,13 @@ function backResolve(g,o,temps,exp,to,left=false){
       if(left){
         return {writeDest:[{
           type:"derefNset",
-          thing:exp.a.value,index:slot.index
+          thing:exp.a.value,index
         }]};
       }
       //add
       o.push({
         type:"dereference",
-        thing:exp.a.value,index:slot.index,to
+        thing:exp.a.value,index,to
       });
       return {type:"word",value:to};
     }
