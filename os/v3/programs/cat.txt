@@ -1,157 +1,96 @@
-; ERSIC OS 4.0 cat Command
-!link utils/macros.txt
 
-!defU StartUser
+meta header userspace;
 
+struct changePointers {
+  array[char] toPath,
+  array[char] param
+};
 
-; Allocate memory
-TRS @200,Target
-TRS @300,Target-Header
-TRS @400,Target-DataBlock
-TRS @500,ChildHeader
+struct loadPointersS {
+  int diskAdr,
+  array[char] dest
+};
 
-; Setup return pointers
-TRS ChangeProg-Pointers,$2
-TRS ChangeProg-DestPath,#0
-TRS ChangeProg-Pointers,ChangeProg-Pointer2
-!defU Incrament ChangeProg-Pointer2
-TRS ChangeProg-Pointer2,$2
-TRS ChangeProg-Params,#0
+define array[char] changePath
+  = "/Programs/shell";
 
-TRS LoadPointers,LoadPointers2
-!defU Incrament LoadPointers2
+define array[char] changeParam = 0;
 
-; Load the CWD path
-!defU kCall 5 Target
+define changePointers returnToShell
+  = {toPath: changePath, param: changeParam}; 
 
-; Find it's end
-TRS Target,CWDend
-LBL FindCWDend
+define array[char] targetPath = 256;
 
-!defU Incrament CWDend
+define array[int] targetHeader = 256;
 
-TRS CWDend,$1
-TRS #0,Temp
-!defU Compare Temp 0 Temp
-!defU cJump Temp FindCWDend-End
+define loadPointersS loadPointers =
+  {diskAdr: null, dest: null};
 
-TRS FindCWDend,PC
+define array[char] curDataBlock = 256;
 
-LBL FindCWDend-End
+function stackless void MAIN(){
+  //load the CWD
+  asm "!defU kCall 5 targetPath";
 
-; Add a / if not in root
-TRS CWDend,ALU-A
-TRS Target,ALU-B
-TRS 32,ALU-C ; Set mode (subtract)
-TRS ALU-O,Temp
-!defU Compare Temp 1 Temp
-!defU cJump Temp InRoot
+  //find it's end
+  define int cwdEnd = 0;
+  while(!(targetPath[cwdEnd] == null)){
+    set cwdEnd = cwdEnd + 1;
+  };
 
-TRS CWDend,$2
-TRS 47,#0
+  //add a / if not in root
+  if(!(cwdEnd == 1)){
+    set targetPath[cwdEnd] = "/";
+    set cwdEnd = cwdEnd + 1;
+  };
 
-!defU Incrament CWDend
+  //load the parameter onto the end
+  define int paramLoadAdr = null;
+  set paramLoadAdr = {int}targetPath + cwdEnd;
+  asm "!defU kCall 4 MAIN.paramLoadAdr";
 
-LBL InRoot
+  //Get the taget file's disk address
+  define int targetAdr = null;
+  asm "!defU kCall 8 targetPath";
+  asm "TRS #4,MAIN.targetAdr";
+  
+  //load the target file's header
+  set loadPointers->diskAdr = targetAdr;
+  set loadPointers->dest = targetHeader;
+  asm "!defU kCall 7 loadPointers";
 
-; Load the parameter onto the end
-!defU kCall 4 CWDend
+  //loop through data blocks
+  define int dataBlockIndex = 1;
+  while(!(targetHeader[dataBlockIndex] == 0)){
+    //load the data block
+    set loadPointers->diskAdr
+      = targetHeader[dataBlockIndex];
+    set loadPointers->dest = curDataBlock;
+    asm "!defU kCall 7 loadPointers";
 
-; Get it's disk adress
-!defU kCall 8 Target
+    //print it
+    define char curChar = null;
+    for(define int i = 0; i < 256; set i = i + 1){
+      set curChar = curDataBlock[i];
+      if(curChar == null){
+        set i = 256;
+      } else {
+        asm "!defU kCall 0 MAIN.curChar";
+      };
+    };
 
-; Load the target header
-TRS LoadPointers,$2
-TRS #4,#0
-TRS LoadPointers2,$2
-TRS Target-Header,#0
-!defU kCall 7 LoadPointers
+    //next data block
+    set dataBlockIndex = dataBlockIndex + 1;
+  };
 
-!defU Incrament Target-Header
+  //add final \n
+  asm "!defU kCall 0 10";
 
-LBL NextDataBlock
+  //return to the shell
+  asm "!defU kCall 3 returnToShell";
+};
 
-; Load the data block
-TRS Target-Header,$3
-TRS LoadPointers,$2
-TRS #0,#0
-TRS LoadPointers2,$2
-TRS Target-DataBlock,#0
-!defU kCall 7 LoadPointers
-
-TRS Target-DataBlock,Print-Pointer
-
-; Print the data block contents
-LBL Print-NextChar
-
-; Get the current charactar
-TRS Print-Pointer,$1
-TRS #0,Print-CurrentChar
-
-; Check for end (null)
-TRS Print-CurrentChar,ALU-A
-TRS 0,ALU-B
-TRS 2,ALU-C ; Set mode(compare)
-
-!defU cJump ALU-O Print-End
-
-; Print it
-!defU kCall 0 Print-CurrentChar
-
-; Incrament the pointer
-!defU Incrament Print-Pointer
-
-; Loop
-TRS Print-NextChar,PC
-
-; End
-LBL Print-End
-
-; Update pointers
-!defU Incrament Target-Header
-TRS 0,Target-DataBlockScan
-
-; Check for end (null)
-TRS Target-Header,$1
-TRS #0,Temp
-!defU Compare Temp 0 Temp
-!defU cJump Temp Done
-
-TRS NextDataBlock,PC
-
-LBL Done
-
-; Add a newline
-!defU kCall 0 10
-
-; Return to the shell
-!defU kCall 3 ChangeProg-Pointers
-
-
-; Ignore character input
-LBL INTERRUPT
-!defU kCall 1 0
-TRS INTERRUPT,PC
-
-
-; LoadFile pointers
-LBL LoadPointers
-TRS #0,#0
-
-; Program change info
-LBL ChangeProg-Pointers
-TRS #0,#0
-
-LBL ChangeProg-DestPath
-; /Programs/shell
-TRS #47,#80
-TRS #114,#111
-TRS #103,#114
-TRS #97,#109
-TRS #115,#47
-TRS #115,#104
-TRS #101,#108
-TRS #108,#0
-
-LBL ChangeProg-Params
-TRS #0,#0
+function stackless void INTERRUPT(){
+  //ignore character input
+  asm "!defU kCall 1 0";
+};

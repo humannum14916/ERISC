@@ -28,7 +28,7 @@
       "source":"programs/cd.txt"
     },{
       "type":"executable",
-      "build":"asm",
+      "build":"cl",
       "name":"cat",
       "source":"programs/cat.txt"
     },{
