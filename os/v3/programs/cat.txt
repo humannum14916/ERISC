@@ -35,18 +35,18 @@ function stackless void MAIN(){
   //find it's end
   define int cwdEnd = 0;
   while(!(targetPath[cwdEnd] == null)){
-    set cwdEnd = cwdEnd + 1;
+    cwdEnd = cwdEnd + 1;
   };
 
   //add a / if not in root
   if(!(cwdEnd == 1)){
-    set targetPath[cwdEnd] = "/";
-    set cwdEnd = cwdEnd + 1;
+    targetPath[cwdEnd] = "/";
+    cwdEnd = cwdEnd + 1;
   };
 
   //load the parameter onto the end
   define int paramLoadAdr = null;
-  set paramLoadAdr = {int}targetPath + cwdEnd;
+  paramLoadAdr = {int}targetPath + cwdEnd;
   asm "!defU kCall 4 MAIN.paramLoadAdr";
 
   //Get the taget file's disk address
@@ -55,32 +55,32 @@ function stackless void MAIN(){
   asm "TRS #4,MAIN.targetAdr";
   
   //load the target file's header
-  set loadPointers->diskAdr = targetAdr;
-  set loadPointers->dest = targetHeader;
+  loadPointers->diskAdr = targetAdr;
+  loadPointers->dest = targetHeader;
   asm "!defU kCall 7 loadPointers";
 
   //loop through data blocks
   define int dataBlockIndex = 1;
   while(!(targetHeader[dataBlockIndex] == 0)){
     //load the data block
-    set loadPointers->diskAdr
+    loadPointers->diskAdr
       = targetHeader[dataBlockIndex];
-    set loadPointers->dest = curDataBlock;
+    loadPointers->dest = curDataBlock;
     asm "!defU kCall 7 loadPointers";
 
     //print it
     define char curChar = null;
-    for(define int i = 0; i < 256; set i = i + 1){
-      set curChar = curDataBlock[i];
+    for(define int i = 0; i < 256; i = i + 1){
+      curChar = curDataBlock[i];
       if(curChar == null){
-        set i = 256;
+        i = 256;
       } else {
         asm "!defU kCall 0 MAIN.curChar";
       };
     };
 
     //next data block
-    set dataBlockIndex = dataBlockIndex + 1;
+    dataBlockIndex = dataBlockIndex + 1;
   };
 
   //add final \n

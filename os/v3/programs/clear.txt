@@ -16,7 +16,7 @@ define changePointers returnToShell
 
 function stackless void MAIN(){
   //print 15 \ns
-  for(define int i=0;i<15;set i=i+1){
+  for(define int i=0;i<15;i=i+1){
     asm "!defU kCall 0 10";
   };
 

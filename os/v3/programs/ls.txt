@@ -47,8 +47,8 @@ function stackless void MAIN(){
   asm "TRS #4,MAIN.cwdAdr";
 
   //load the CWD directory header
-  set loadPointers->diskAdr = cwdAdr;
-  set loadPointers->dest = cwd;
+  loadPointers->diskAdr = cwdAdr;
+  loadPointers->dest = cwd;
   asm "!defU kCall 7 loadPointers";
 
   //loop through the CWD header data blocks
@@ -56,16 +56,16 @@ function stackless void MAIN(){
   define int childIndex = 0;
   while(!(cwd[dataBlockIndex] == null)){
     //load the data block
-    set loadPointers->diskAdr = cwd[dataBlockIndex];
-    set loadPointers->dest = dataBlock;
+    loadPointers->diskAdr = cwd[dataBlockIndex];
+    loadPointers->dest = dataBlock;
     asm "!defU kCall 7 loadPointers";
 
     //loop through children
     while(!(dataBlock[childIndex] == null)){
       //load the child header
-      set loadPointers->diskAdr
+      loadPointers->diskAdr
         = dataBlock[childIndex];
-      set loadPointers->dest = childHeader;
+      loadPointers->dest = childHeader;
       asm "!defU kCall 7 loadPointers";
 
       //print the file type
@@ -77,20 +77,20 @@ function stackless void MAIN(){
       //print file name
       define int nameIndex = 1;
       while(!(childHeader[nameIndex] == null)){
-        set nameIndex = nameIndex + 1;
+        nameIndex = nameIndex + 1;
       };
-      set nameIndex = nameIndex + 1;
+      nameIndex = nameIndex + 1;
       call printStr(childHeader,nameIndex);
 
       //add a \n
       asm "!defU kCall 0 10";
 
       //next child
-      set childIndex = childIndex + 1;
+      childIndex = childIndex + 1;
     };
 
     //next data block
-    set dataBlockIndex = dataBlockIndex + 1;
+    dataBlockIndex = dataBlockIndex + 1;
   };
 
   //return to the shell
@@ -102,9 +102,9 @@ function stackless void printStr(
 ){
   define char curChar = null;
   while(!(str[index] == null)){
-    set curChar = str[index];
+    curChar = str[index];
     asm "!defU kCall 0 printStr.curChar";
-    set index = index + 1;
+    index = index + 1;
   };
 };
 

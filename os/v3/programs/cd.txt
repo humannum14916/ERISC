@@ -25,31 +25,31 @@ function stackless void MAIN(){
   //find the end of the CWD
   define int cwdEnd = 0;
   while(!(cwd[cwdEnd] == null)){
-    set cwdEnd = cwdEnd + 1;
+    cwdEnd = cwdEnd + 1;
   };
 
   //check for .
   if(param[0] == "." & param[1] == null){
     //is ., got up one directory
     while(!(cwd[cwdEnd] == "/")){
-      set cwdEnd = cwdEnd - 1;
+      cwdEnd = cwdEnd - 1;
     };
     if(cwdEnd == 0){
-      set cwdEnd = cwdEnd + 1;
+      cwdEnd = cwdEnd + 1;
     };
-    set cwd[cwdEnd] = null;
+    cwd[cwdEnd] = null;
   } else {
     //not ., add param to CWD
     if(!(cwdEnd == 1)){
       //not in root dir, add / to CWD
-      set cwd[cwdEnd] = "/";
-      set cwdEnd = cwdEnd + 1;
+      cwd[cwdEnd] = "/";
+      cwdEnd = cwdEnd + 1;
     };
     //add param to CWD
     define int paramIndex = 0;
     while(!(param[paramIndex] == null)){
-      set cwd[cwdEnd+paramIndex] = param[paramIndex];
-      set paramIndex = paramIndex + 1;
+      cwd[cwdEnd+paramIndex] = param[paramIndex];
+      paramIndex = paramIndex + 1;
     };
   };
 
