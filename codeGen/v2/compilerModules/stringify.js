@@ -120,6 +120,8 @@ function stringifyD(ds,structs){
         a = d.value.value.split("").map(v=>{return "^"+v});
       } else if(d.value.type == "array"){
         a = d.value.value.map(valify);
+      } else if(d.value.type == "null"){
+        //empty array
       } else {
         misc.error("Invalid array value type \""+d.value.type+"\"",d);
       }
