@@ -130,9 +130,13 @@ function parse(code){
         o.val = hexDec(p);
       } else if(p[0] == "^"){
         p = p.slice(1);
-        o.val = toASCII(p)[0];
+        o.val = toASCII(p+" ")[0];
       } else {
         o.val = p;
+      }
+      if(o.val == undefined){
+        console.error("Malformed parameter: \""+line+"\"");
+        process.exit(1);
       }
       return o;
     });
