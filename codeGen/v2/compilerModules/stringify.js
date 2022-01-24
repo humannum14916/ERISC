@@ -79,6 +79,13 @@ function stringifyF(f){
         }
       } else if(c.type == "lable"){
         o += "LBL "+c.value;
+      } else if(c.type == "derefNset"){
+        //ofset index
+        o += "TRS 0,ALU-C\n";
+        o += "TRS "+valify(c.thing)+",ALU-A\n";
+        o += "TRS "+valify(c.index)+",ALU-B\n";
+        o += "TRS ALU-O,$2\n";
+        o += "TRS "+valify(c.value)+",#0";
       }
       o += "\n\n";
     }
