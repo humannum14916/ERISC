@@ -16,36 +16,52 @@ function branchify(contents,lprefix=""){
   let nextLable = 0;
   for(let c of contents){
     if(c.type == "while"){
-      //create and add lable
-      let lable = lprefix+"while_"+nextLable;
+      //create base lable
+      let bLable = lprefix+"while_"+nextLable+"_";
       nextLable++;
-      o.push({type:"lable",value:lable});
+      //create condition lable
+      let condLable = bLable+"cond";
+      //add initial jump
+      o.push({type:"branch",to:condLable});
+      //add start lable
+      let startLable = bLable+"start";
+      o.push({type:"lable",value:startLable});
       //branchify body
-      c.body = branchify(c.body,lable+"_");
+      c.body = branchify(c.body,bLable+"body_");
+      //add condition lable
+      c.body.push({type:"lable",value:condLable});
       //rotate condition
       c.body.push({
         type:"branch",
         condition:c.condition,
-        to:lable
+        to:startLable
       });
       //add body
       o = o.concat(c.body);
     } else if(c.type == "for"){
       //pop out initilization
       o.push(c.init);
-      //create and add lable
-      let lable = lprefix+"for_"+nextLable;
+      //create base lable
+      let bLable = lprefix+"while_"+nextLable+"_";
       nextLable++;
-      o.push({type:"lable",value:lable});
+      //create condition lable
+      let condLable = bLable+"cond";
+      //add initial jump
+      o.push({type:"branch",to:condLable});
+      //add start lable
+      let startLable = bLable+"start";
+      o.push({type:"lable",value:startLable});
       //branchify body
-      c.body = branchify(c.body,lable+"_");
+      c.body = branchify(c.body,bLable+"body_");
       //rotate update
       c.body.push(c.update);
+      //add condition lable
+      c.body.push({type:"lable",value:condLable});
       //rotate condition
       c.body.push({
         type:"branch",
         condition:c.condition,
-        to:lable
+        to:startLable
       });
       //add body
       o = o.concat(c.body);
