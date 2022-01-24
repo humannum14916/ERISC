@@ -40,9 +40,14 @@ function serve(f){
 }
 
 function call(path,input,params){
-  return (spawn(
+  let r = spawn(
     "node",[path].concat(params),{input,stdio:["pipe","pipe","inherit"]}
-  ).stdout || "").toString();
+  );
+  if((r.status || 0) != 0){
+    console.error(`Call to ${path} failed with code ${r.status}`);
+    process.exit(1);
+  }
+  return (r.stdout || "").toString();
 }
 
 module.exports = {serve,call};
