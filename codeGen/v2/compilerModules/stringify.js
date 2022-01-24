@@ -86,6 +86,8 @@ function stringifyF(f){
         o += "TRS "+valify(c.index)+",ALU-B\n";
         o += "TRS ALU-O,$2\n";
         o += "TRS "+valify(c.value)+",#0";
+      } else if(c.type == "call"){
+        o += `!defU callF ${c.name}`;
       }
       o += "\n\n";
     }
