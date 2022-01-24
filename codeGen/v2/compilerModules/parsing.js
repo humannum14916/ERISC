@@ -596,6 +596,12 @@ function parseValue(value){
       value.type = "number";
     } else if(value.value == "null"){
       value.type = "null";
+    } else if(value.value == "false"){
+      value.type = "number";
+      value.value = 0;
+    } else if(value.value == "true"){
+      value.type = "number";
+      value.value = 1;
     }
   }
   //return
