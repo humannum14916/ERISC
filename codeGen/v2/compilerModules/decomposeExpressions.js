@@ -34,7 +34,7 @@ function dExpression(e){
   //access, call, and parenthesis
   e = (e=>{
     let o = [];
-    for(c of e){
+    for(let c of e){
       if(c.type == "call"){
         //get name
         let name = o.pop();
@@ -47,6 +47,8 @@ function dExpression(e){
         //get thing
         let thing = o.pop();
         if(!thing) misc.error("Cannot start an expression with an access");
+        //decompose thing
+        thing = dExpression([thing]);
         //decompose index
         let index = dExpression(c.index);
         //add back to expression
@@ -60,7 +62,7 @@ function dExpression(e){
     }
     return o;
   })(e);
-  //~
+  //~ ! and casts
   e = (e=>{
     let o = [];
     while(e.length != 0){
@@ -69,25 +71,24 @@ function dExpression(e){
         //get value to invert
         let val = e.shift();
         if(!val) misc.error("Cannot end and expression with ~",cur);
+        //decompose value
+        val = dExpression([val]);
         //add
         o.push({type:"~",a:val});
-      } else {
-        o.push(cur);
-      }
-    }
-    return o;
-  })(e);
-  //!
-  e = (e=>{
-    let o = [];
-    while(e.length != 0){
-      let cur = e.shift();
-      if(cur.type == "operator" && cur.value.value == "!"){
+      } else if(cur.type == "operator" && cur.value.value == "!"){
         //get value to invert
         let val = e.shift();
         if(!val) misc.error("Cannot end and expression with !",cur);
         //add
         o.push({type:"!",a:val});
+      } else if(cur.type == "cast"){
+        //get target
+        let target = e.shift();
+        if(!target) misc.error("Cannot start an expression with a cast");
+        //add cast info
+        target.castType = cur.toType;
+        //add back to expression
+        o.push(target);
       } else {
         o.push(cur);
       }

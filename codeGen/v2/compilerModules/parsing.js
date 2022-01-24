@@ -789,6 +789,12 @@ function parseExpression(line){
         parseExpression(value.contents)
       });
       prev = "value";
+    } else if(value.bound == "{"){
+      //cast
+      o.push({
+        type:"cast",
+        toType:parseType(value.contents).value
+      });
     } else if(value.type == "token"){
       //operator
       o.push({type:"operator",value});

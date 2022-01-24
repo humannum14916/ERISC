@@ -96,9 +96,13 @@ function backResolve(g,o,temps,exp,to,left=false){
       o.push({
         type:"set",dest:to,value:exp.value
       });
-      return {type:"word",value:to};
+      return {
+        type:"word",value:to,castType:exp.castType
+      };
     }
-    return exp.value;
+    return Object.assign(
+      exp.value,{castType:exp.castType}
+    );
   } else if(exp.type == "->"){
     if(
       exp.a.value.type != "word" ||
@@ -173,6 +177,8 @@ function backResolve(g,o,temps,exp,to,left=false){
     let at = typeStr(compType(g,a));
     let bt;
     if(b) bt = typeStr(compType(g,b));
+    if(a.castType) at = typeStr(a.castType);
+    if(bt && b.castType) bt = typeStr(b.castType);
     //type check
     let opReq = {
       "+":{types:[["int"],["int"]],match:true},
