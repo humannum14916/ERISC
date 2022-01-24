@@ -23,7 +23,7 @@
       "source":"programs/ls.txt"
     },{
       "type":"executable",
-      "build":"asm",
+      "build":"cl",
       "name":"cd",
       "source":"programs/cd.txt"
     },{
