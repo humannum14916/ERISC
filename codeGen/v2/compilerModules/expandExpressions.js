@@ -197,11 +197,11 @@ function backResolve(g,o,temps,exp,to,left=false){
     }[exp.type];
     if(!opReq) misc.error("[Dev] Op needs type requirements! "+exp.type);
     if(at != "null" && bt != "null"){
-      if(at != bt && opReq.match) misc.error(`Mismatched types to operator ${exp.type}, got ${at} and ${bt}`);
+      if(at != bt && opReq.match) misc.error(`Mismatched types to operator ${exp.type}, got ${at} and ${bt}`,a);
       if(opReq.types[0].indexOf(at) == -1 && opReq.types[0] != "any")
-        misc.error(`Operator ${exp.type} requires one of types ${opReq.types[0].join(", ")}, got ${at}`);
+        misc.error(`Operator ${exp.type} requires one of types ${opReq.types[0].join(", ")}, got ${at}`,a);
       if(opReq.types[1].indexOf(bt) == -1 && opReq.types[1] != "any")
-        misc.error(`Operator ${exp.type} requires one of types ${opReq.types[1].join(", ")}, got ${bt}`);
+        misc.error(`Operator ${exp.type} requires one of types ${opReq.types[1].join(", ")}, got ${bt}`,b);
     }
     //get output type
     let outType = {
