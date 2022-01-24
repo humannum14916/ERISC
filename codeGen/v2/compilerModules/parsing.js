@@ -632,15 +632,6 @@ function parseCodeLine(line){
     misc.typeCheck(str,"string");
     //return
     o.push({type:"asm",value:str});
-  } else if(lineType == "set"){
-    //get dest
-    let dest = parseExpression(line);
-    //remove =
-    misc.typeCheck(line.shift(),"token","=");
-    //parse expression
-    let exp = parseExpression(line);
-    //return
-    o.push({type:"set",dest,exp});
   } else if(lineType == "define"){
     //get type
     let type = parseType(line);
@@ -750,8 +741,15 @@ function parseCodeLine(line){
     //return
     o.push({type:"call",name,params});
   } else {
-    console.error(o);
-    misc.error("Expected line start, got \""+lineType+"\"",lineTypeF);
+    line.unshift(lineTypeF);
+    //get dest
+    let dest = parseExpression(line);
+    //remove =
+    misc.typeCheck(line.shift(),"token","=");
+    //parse expression
+    let exp = parseExpression(line);
+    //return
+    o.push({type:"set",dest,exp});
   }
   //check for excess
   if(line.length != 0) misc.error("Excess after expected end of line",line[0]);
