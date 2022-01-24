@@ -7,6 +7,7 @@ Commands:
   build (os) - Builds os (os)
 */
 
+const {call} = require("./utils/ioWrap.js");
 const spawn = require("child_process").spawn;
 async function exec(command,params,options){
   let proc = spawn(command,params,Object.assign(
@@ -36,23 +37,14 @@ while(args.length != 0){
     await buildEmu("emulators/v2/emulate");
     console.log("Emulators built");
   } else if(command == "build"){
-    let toolR = args.shift();
-    tool = {
-      "v1":{
-        command:"node",args:[
-          "os/v1/build.js"
-      ]},
-      "v2":{
-        command:"node",args:[
-          "os/v2/build.js"
-      ]},
-      "v3":{
-        command:"node",args:[
-          "os/v3/build.js"
-      ]},
-    }[toolR];
-    if(!tool) error("Unkown tool \""+toolR+"\"");
-    await exec(tool.command,tool.args);
+    let name = args.shift();
+    let buildScript = {
+      "v1":"os/v1/build.js",
+      "v2":"os/v2/build.js",
+      "v3":"os/v3/build.js",
+    }[name];
+    if(!buildScript) error("Unkown build name \""+name+"\"");
+    call(buildScript);
   } else if(command == "emulate"){
     let emu = args.shift();
     let image = args.shift();
