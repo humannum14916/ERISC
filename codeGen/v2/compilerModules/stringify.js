@@ -46,6 +46,7 @@ function stringifyF(f){
           "<":3,
           "&":4,//TEMP
           "~":5,//TEMP
+          "|":6,//TEMP
           "!":(a,b,out)=>{
             //bitwise not
             o += "TRS 5,ALU-C\n";//TEMP

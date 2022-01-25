@@ -200,6 +200,10 @@ function backResolve(g,o,temps,exp,to,left=false){
         ["int","bool","char"],
         ["int","bool","char"]
       ],match:true},
+      "|":{types:[
+        ["int","bool","char"],
+        ["int","bool","char"]
+      ],match:true},
       "~":{types:[
         ["bool"],[undefined]
       ],match:false},
@@ -223,6 +227,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       ">":{name:{type:"word",value:"bool"}},
       "<":{name:{type:"word",value:"bool"}},
       "&":"left",
+      "|":"left",
       "~":{name:{type:"word",value:"bool"}},
       "!":{name:{type:"word",value:"bool"}},
     }[exp.type];
