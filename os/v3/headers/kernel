@@ -2,14 +2,8 @@
 ; Kernel Header ;
 ;---------------;
 
-TRS __COMPILER_HEADER_PROTECTED-RET,PC
+TRS USERRET,PC
 
 TRS #0,#0
 
-!defU callF MAIN
-
-
-LBL __COMPILER_HEADER_PROTECTED-RET
-
-!defU callF USERRET
-
+TRS MAIN,PC
