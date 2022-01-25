@@ -83,9 +83,10 @@ function lex(code,root){
           curString = "";
           escaped = false;
         } else {
+          if(escaped) curString += "\\";
           curString += c.value;
+          escaped = false;
         }
-        escaped = false;
       }
     }
     return codeO;

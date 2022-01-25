@@ -119,7 +119,25 @@ function stringifyD(ds,structs){
       if(d.value.type == "number"){
         for(let i=0;i<d.value.value;i++) a.push(0);
       } else if(d.value.type == "string"){
-        a = d.value.value.split("").map(v=>{return "^"+v});
+        a = [];
+        let chars = d.value.value.split("");
+        while(chars.length != 0){
+          if(chars[0] == "\\" && chars[1] == "h"){
+            let hex = "";
+            chars.shift();
+            chars.shift();
+            while(chars[0] != "h"){
+              hex += chars.shift();
+              if(chars.length == 0){
+                misc.error("String hex insert not ended");
+              }
+            }
+            chars.shift();
+            a.push("@"+hex);
+          } else {
+            a.push("^"+chars.shift());
+          }
+        }
       } else if(d.value.type == "array"){
         a = d.value.value.map(valify);
       } else if(d.value.type == "null"){
