@@ -50,10 +50,14 @@ function backResolveCallParams(g,o,temps,call,to,){
   if(to){
     o.push({
       type:"set",dest:to,
-      value:"__COMPILER-RETURN-"+call.name.value
+      value:{type:"word",
+        value:"__COMPILER-RETURN-"+call.name.value
+      }
     });
   }
-  return "__COMPILER-RETURN-"+call.name.value
+  return {type:"word",
+    value:"__COMPILER-RETURN-"+call.name.value
+  };
 }
 
 function backResolve(g,o,temps,exp,to,left=false){
