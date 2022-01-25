@@ -627,7 +627,12 @@ function parseCodeBlock(code){
     while(
       code[0].type != "token"
       || code[0].value != ";"
-    ) line.push(code.shift());
+    ){
+      line.push(code.shift());
+      if(code.length == 0){
+        misc.error("Unexpected end of block, after",line.pop());
+      }
+    }
     code.shift();
     //parse
     o.push(parseCodeLine(line));
