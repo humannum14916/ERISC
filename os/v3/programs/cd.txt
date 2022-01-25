@@ -62,5 +62,5 @@ function stackless void MAIN(){
 
 function stackless void INTERRUPT(){
   //ignore character input
-  asm "!defU kCall 1 0";
+  while(true){asm "!defU kCall 1 0";};
 };
