@@ -83,8 +83,17 @@ function lex(code,root){
           curString = "";
           escaped = false;
         } else {
-          if(escaped) curString += "\\";
-          curString += c.value;
+          if(escaped){
+            if(c.value == "n"){
+              curString += "\\hah";
+            } else if(c.value != "\""){
+              curString += "\\";
+            } else {
+              curString += c.value;
+            }
+          } else {
+            curString += c.value;
+          }
           escaped = false;
         }
       }
