@@ -8,7 +8,7 @@
     "type":"directory",
     "contents":[{
       "type":"executable",
-      "build":"asm",
+      "build":"cl",
       "name":"shell",
       "source":"system/shell.txt"
     },{

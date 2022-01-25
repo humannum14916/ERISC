@@ -1,198 +1,103 @@
-; ERSIC OS 4.0 Command Line
-!link utils/macros.txt
 
-!defU StartUser
+meta header userspace;
 
+struct changePointers {
+  array[char] toPath,
+  array[char] param
+};
 
-; CWD
-TRS @200,CWD
+define array[char] changePath = 256;
 
-; Command info (name and parameter)
-TRS @300,CommandInfoHead
+define array[char] changeParam = 256;
 
-; Setup vars
-TRS CommandInfoHead,CommandName
-TRS Interrupt-HandleChar,Interrupt-Handler
-TRS Interrupt-StoreChar-Name,Interrupt-StoreChar
+define changePointers nextProgram
+  = {toPath: changePath, param: changeParam}; 
 
-; Copy the command path start
-TRS ProgramPath,CopyString-From
-TRS CommandInfoHead,CopyString-To
-!defU callF CopyString
-TRS CopyString-To,ALU-A
-TRS 1,ALU-B
-TRS 32,ALU-C ; Set mode (subtract)
-TRS ALU-O,CommandInfoHead
+define array[char] cwd = 256;
 
-; Load the CWD string
-!defU kCall 5 CWD
+define array[char] prompt = " > \h0h";
 
-; Print it
-TRS CWD,PCWD-ToPrint
-LBL PCWD-NextChar
+define bool takingInput = true;
 
-; Get the current charactar
-TRS PCWD-ToPrint,$1
-TRS #0,PCWD-CurrentChar
+define int pathEnd = 0;
+define int paramEnd = 0;
 
-; Check for end (null)
-TRS PCWD-CurrentChar,ALU-A
-TRS 0,ALU-B
-TRS 2,ALU-C ; Set mode(compare)
+define array[char] pathStart = "/Programs/";
 
-!defU cJump ALU-O PCWD-End
+define bool readingName = true;
 
-; Print it
-!defU kCall 0 PCWD-CurrentChar
+function stackless void MAIN(){
+  //initialise the change path
+  while(
+    pathEnd < pathStart->length
+  ){
+    changePath[pathEnd] = pathStart[pathEnd];
+    pathEnd = pathEnd + 1;
+  };
 
-; Incrament the pointer
-!defU Incrament PCWD-ToPrint
+  //load the CWD
+  asm "!defU kCall 5 cwd";
 
-; Loop
-TRS PCWD-NextChar,PC
+  //print it
+  call printStr(cwd,0);
 
-; End
-LBL PCWD-End
+  //print the prompt
+  call printStr(prompt,0);
 
-; Print the command prompt ( > )
-!defU kCall 0 32
-!defU kCall 0 62
-!defU kCall 0 32
+  //wait for input
+  asm "TRS 2,LCD";
+  while(takingInput){};
 
-; Wait for input
-TRS 2,LCD
-LBL AwaitInput
-TRS AwaitInput,PC
+  //Load the next program
+  asm "!defU kCall 3 nextProgram";
+};
 
-LBL LoadNext
+function stackless void printStr(
+  array[char] str, int index
+){
+  define char curChar = null;
+  while(!(str[index] == null)){
+    curChar = str[index];
+    asm "!defU kCall 0 printStr.curChar";
+    index = index + 1;
+  };
+};
 
-; Finish param string
-TRS CommandInfoHead,$2
-TRS 0,#0
+function stackless void INTERRUPT(){
+  while(true){
+    if(takingInput){
+      //read the character
+      define char curChar = null;
+      asm "!defU kCall 2 0";
+      asm "TRS #4,INTERRUPT.curChar";
 
-; Load the next program
-!defU kCall 3 ChangeProg-Pointers
+      //print it
+      asm "!defU kCall 0 INTERRUPT.curChar";
 
-; Interrupt handler
-LBL INTERRUPT
+      //handle it
+      if(curChar == {char}10){
+        //\n, done taking input
+        takingInput = false;
+      } elif(readingName){
+        //reading command name
 
-TRS Interrupt-Handler,PC
+        //check for space
+        if(curChar == " "){
+          //is space, switch to reading param
+          readingName = false;
+        } else {
+          //normal char, add to name
+          changePath[pathEnd] = curChar;
+          pathEnd = pathEnd + 1;
+        };
+      } else {
+        //reading command parameter
+        changeParam[paramEnd] = curChar;
+        paramEnd = paramEnd + 1;
+      };
+    };
 
-; Not storing characters, trash them
-LBL Interrupt-TrashChar
-!defU kCall 1 0
-TRS Interrupt-TrashChar,PC
-
-; Store the character
-LBL Interrupt-HandleChar
-
-; Read character
-!defU kCall 2 0
-TRS #4,kCall-Return
-
-; Echo to TTY
-!defU kCall 0 kCall-Return
-
-; Check if it is a \n
-!defU Compare kCall-Return 10 Interrupt-Temp
-!defU cJump Interrupt-Temp Interrupt-DoneStart
-
-; Handle char storage
-TRS Interrupt-StoreChar,PC
-
-; Command name char storage
-LBL Interrupt-StoreChar-Name
-; Check for space
-!defU Compare kCall-Return 32 Interrupt-Temp
-!defU cJump Interrupt-Temp Interrupt-StoreChar-Name-IsSpace
-
-; Not space, store and end
-TRS CommandInfoHead,$2
-TRS kCall-Return,#0
-
-; don't forget to inc the pointer
-!defU Incrament CommandInfoHead
-
-TRS Interrupt-End,PC
-
-LBL Interrupt-StoreChar-Name-IsSpace
-
-; Is space, store null, init params pointer
-TRS CommandInfoHead,$2
-TRS 0,#0
-!defU Incrament CommandInfoHead
-
-TRS CommandInfoHead,CommandParams
-
-; And pass control to the command param handler
-TRS Interrupt-StoreChar-Params,Interrupt-StoreChar
-
-TRS Interrupt-End,PC
-
-; Command params char storage
-LBL Interrupt-StoreChar-Params
-
-; Write the character
-TRS CommandInfoHead,$2
-TRS kCall-Return,#0
-
-; Inc the pointer
-!defU Incrament CommandInfoHead
-
-TRS Interrupt-End,PC
-
-; Newline handler
-LBL Interrupt-DoneStart
-
-; Check if the command parameters string is set
-!defU Compare CommandParams 0 Interrupt-Temp
-!defU cJump Interrupt-Temp Interrupt-SetParams
-TRS Interrupt-DoneEnd,PC
-LBL Interrupt-SetParams
-
-; Point the command parameter string to start
-; at null (the end of the command name string)
-TRS CommandInfoHead,CommandParams
-
-LBL Interrupt-DoneEnd
-
-; Disable character storage
-TRS Interrupt-TrashChar,Interrupt-Handler
-
-; Setup the pointers for changing programs
-TRS ChangeProg-Pointers,$2
-TRS CommandName,#0
-
-TRS ChangeProg-Pointers,ChangeProg-Params
-!defU Incrament ChangeProg-Params
-TRS ChangeProg-Params,$2
-TRS CommandParams,#0
-
-; And tell the main program to load it
-TRS LoadNext,AwaitInput
-
-LBL Interrupt-End
-
-; Clear character
-!defU kCall 1 0
-
-; Loop
-TRS INTERRUPT,PC
-
-
-!link utils/copyString.txt
-
-
-; Program path start
-; /Programs/
-LBL ProgramPath
-TRS #47,#80
-TRS #114,#111
-TRS #103,#114
-TRS #97,#109
-TRS #115,#47
-TRS #0,#0
-
-; Change program kernel function pointer passing
-LBL ChangeProg-Pointers
-TRS #0,#0
+    //clear the character
+    asm "!defU kCall 1 0";
+  };
+};
