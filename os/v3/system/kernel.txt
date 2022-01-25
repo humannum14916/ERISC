@@ -139,7 +139,15 @@ TRS KFC-End,PC
 
 ; ClearChar (1)
 LBL KFC-ClearChar
+
+; Store the ALU contents
+TRS KernelInterrupt-ALU-A,ALU-A
+TRS KernelInterrupt-ALU-B,ALU-B
+TRS KernelInterrupt-ALU-C,ALU-C
+
+; Clear the character
 TRS 0,KBD
+
 TRS KFC-End,PC
 
 ; ReadChar (2)
@@ -329,6 +337,11 @@ LBL KFC-IfinishSkip
 
 ; Interrupt handler
 LBL KernelInterrupt
+
+; Store the ALU contents
+TRS ALU-A,KernelInterrupt-ALU-A
+TRS ALU-B,KernelInterrupt-ALU-B
+TRS ALU-C,KernelInterrupt-ALU-C
 
 ; Set interrupt flag
 TRS 1,KFC-InInterrupt
