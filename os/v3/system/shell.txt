@@ -15,7 +15,7 @@ define changePointers nextProgram
 
 define array[char] cwd = 256;
 
-define array[char] prompt = " > \h0h";
+define array[char] prompt = " > ";
 
 define bool takingInput = true;
 

@@ -12,7 +12,7 @@ struct loadPointersS {
 };
 
 define array[char] changePath
-  = "/Programs/shell\h0h";
+  = "/Programs/shell";
 
 define array[char] changeParam = 0;
 

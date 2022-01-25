@@ -7,7 +7,7 @@ struct changePointers {
 };
 
 define array[char] changePath
-  = "/Programs/shell\h0h";
+  = "/Programs/shell";
 
 define array[char] changeParam = 0;
 
@@ -28,9 +28,9 @@ define array[char] dataBlock = 256;
 
 define array[char] childHeader = 256;
 
-define array[char] typeDir = "Directory\h0h";
-define array[char] typeExe = "Executable\h0h";
-define array[char] typeTxt = "ASCII Text\h0h";
+define array[char] typeDir = "Directory";
+define array[char] typeExe = "Executable";
+define array[char] typeTxt = "ASCII Text";
 
 define array[array[char]] typeLUT
   = [typeDir,typeExe,typeTxt];

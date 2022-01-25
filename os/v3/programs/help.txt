@@ -12,7 +12,7 @@ struct loadPointersS {
 };
 
 define array[char] changePath
-  = "/Programs/shell\h0h";
+  = "/Programs/shell";
 
 define array[char] changeParam = 0;
 
@@ -20,7 +20,7 @@ define changePointers returnToShell
   = {toPath: changePath, param: changeParam}; 
 
 define array[char] targetPath =
-  "/Lib/help-text\h0h";
+  "/Lib/help-text";
 
 define array[int] targetHeader = 256;
 
