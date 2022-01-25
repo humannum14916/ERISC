@@ -7,7 +7,7 @@ struct changePointers {
 };
 
 define array[char] changePath
-  = "/Programs/shell";
+  = "/Programs/shell\h0h";
 
 define array[char] changeParam = 0;
 
@@ -28,14 +28,14 @@ define array[char] dataBlock = 256;
 
 define array[char] childHeader = 256;
 
-define array[char] typeDir = "Directory";
-define array[char] typeExe = "Executable";
-define array[char] typeTxt = "ASCII Text";
+define array[char] typeDir = "Directory\h0h";
+define array[char] typeExe = "Executable\h0h";
+define array[char] typeTxt = "ASCII Text\h0h";
 
 define array[array[char]] typeLUT
   = [typeDir,typeExe,typeTxt];
 
-define array[char] separator = " | ";
+define array[char] separator = " | \h0h";
 
 function stackless void MAIN(){
   //load the CWD
