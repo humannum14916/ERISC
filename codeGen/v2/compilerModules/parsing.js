@@ -86,9 +86,10 @@ function lex(code,root){
           if(escaped){
             if(c.value == "n"){
               curString += "\\hah";
-            } else if(c.value != "\""){
-              curString += "\\";
+            } else if(c.value == "\""){
+              curString += "\"";
             } else {
+              curString += "\\";
               curString += c.value;
             }
           } else {
