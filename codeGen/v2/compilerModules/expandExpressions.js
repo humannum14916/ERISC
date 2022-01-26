@@ -160,9 +160,8 @@ function backResolve(g,o,temps,exp,to,left=false){
       if(left){
         return {writeDest:[{
           type:"derefNset",
-          thing:exp.a.value,index,
-          destType:slot
-        }]};
+          thing:exp.a.value,index
+        }],destType:slot.type};
       }
       //add
       o.push({
