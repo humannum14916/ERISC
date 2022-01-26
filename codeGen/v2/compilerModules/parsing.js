@@ -633,6 +633,8 @@ function parseCodeBlock(code){
         misc.error("Unexpected end of block, after",line.pop());
       }
     }
+    if(line.length == 0)
+      misc.error("Zero-length line",code[0]);
     code.shift();
     //parse
     o.push(parseCodeLine(line));
