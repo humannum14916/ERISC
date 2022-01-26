@@ -67,7 +67,7 @@ function stackless void USERRET(){
     //restore the last return address
     define int iReturn = 0;
     iReturn = ({array[int]}kernelLength)[2];
-    kernelLength[2] = mainReturn;
+    ({array[int]}kernelLength)[2] = mainReturn;
   };
 
   //return value
@@ -155,11 +155,11 @@ function stackless void USERRET(){
     inInterrupt = true;
 
     //reset the return address
-    kernelLength[2] = iReturn;
+    ({array[int]}kernelLength)[2] = iReturn;
   };
 
   //update the return value
-  kernelLength[4] = returnValue;
+  ({array[int]}kernelLength)[4] = returnValue;
 
   //return the the user program
   asm "!defU EnterUser kernelLength";
@@ -178,7 +178,7 @@ function stackless void INTERRUPT(){
   mainReturn = ({array[int]}kernelLength)[2];
 
   //set it to run the interrupt handler
-  kernelLength[2] = 4;
+  ({array[int]}kernelLength)[2] = 4;
 
   //enter the user program
   asm "!defU EnterUser kernelLength";
