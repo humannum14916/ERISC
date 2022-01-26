@@ -47,6 +47,7 @@ function stackless void MAIN(){
   //wait for input
   asm "TRS 2,LCD";
   while(takingInput){};
+  asm "TRS 1,LCD";
 
   //Load the next program
   asm "!defU kCall 3 nextProgram";
