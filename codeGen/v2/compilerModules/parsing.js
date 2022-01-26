@@ -768,11 +768,16 @@ function parseCodeLine(line){
     //get dest
     let dest = parseExpression(line);
     //remove =
-    misc.typeCheck(line.shift(),"token","=");
+    let equals = line.shift();
+    misc.typeCheck(equals,"token","=");
     //parse expression
     let exp = parseExpression(line);
     //return
-    o.push({type:"set",dest,exp});
+    o.push({
+      type:"set",dest,exp,
+      line:equals.line,
+      column:equals.column
+    });
   }
   //check for excess
   if(line.length != 0) misc.error("Excess after expected end of line",line[0]);

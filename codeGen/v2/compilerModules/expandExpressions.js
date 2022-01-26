@@ -19,7 +19,7 @@ function expand(f,g){
       let toType = typeStr(destType)
       let fromType = typeStr(compType(g,f));
       if(toType != fromType)
-        misc.error(`Cannot write type ${fromType} to ${toType}`);
+        misc.error(`Cannot write type ${fromType} to ${toType}`,c);
       if(!to){
         o[o.length - 1].value = f;
       }
