@@ -648,7 +648,6 @@ function parseCodeLine(line){
   //get line type
   let lineTypeF = line.shift();
   let lineType = lineTypeF.value;
-  misc.typeCheck(lineTypeF,"word");
   //parse line
   if(lineType == "asm"){
     //get string
