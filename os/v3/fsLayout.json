@@ -1,7 +1,7 @@
 {
   "type":"directory",
   "kernel":"system/kernel.txt",
-  "build":"asm",
+  "build":"cl",
   "name":"/",
   "contents":[{
     "name":"Programs",
