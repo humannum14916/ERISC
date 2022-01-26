@@ -260,6 +260,8 @@ function stackless int evalPath(array[char] path){
         //next child
         childScan = childScan + 1;
       };
+
+      dataBlockScan = dataBlockScan + 1;
     };
 
     if(searching){
