@@ -138,7 +138,7 @@ function backResolve(g,o,temps,exp,to,left=false){
         o.push({
           type:"set",dest:to,value:length
         });
-        return {type:"word",value:to};
+        return to;
       }
       return length;
     } else {
