@@ -18,8 +18,10 @@ function expand(f,g){
       o = o.concat(writeDest);
       let toType = typeStr(destType)
       let fromType = typeStr(compType(g,f));
-      if(toType != fromType)
-        misc.error(`Cannot write type ${fromType} to ${toType}`,c);
+      if(
+        toType != fromType &&
+        (toType != "null" && fromType != "null")
+      ) misc.error(`Cannot write type ${fromType} to ${toType}`,c);
       if(!to){
         o[o.length - 1].value = f;
       }
