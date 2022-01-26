@@ -81,7 +81,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       return {writeDest:[{
         type:"derefNset",
         thing,index
-      }],destType:thingType};
+      }],destType:thingType.subType};
     }
     //get destination
     if(!to){
