@@ -16,6 +16,10 @@ function expand(f,g){
       );
       let f = backResolve(g,o,temps,c.exp,to);
       o = o.concat(writeDest);
+      let toType = typeStr(destType)
+      let fromType = typeStr(compType(g,f));
+      if(toType != fromType)
+        misc.error(`Cannot write type ${fromType} to ${toType}`);
       if(!to){
         o[o.length - 1].value = f;
       }
