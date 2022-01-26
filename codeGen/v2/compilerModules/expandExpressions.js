@@ -98,7 +98,7 @@ function backResolve(g,o,temps,exp,to,left=false){
   } else if(exp.type == "call"){
     //resolve call
     exp.name = exp.name.value
-    backResolveCallParams(g,o,temps,exp,to);
+    return backResolveCallParams(g,o,temps,exp,to);
   } else if(exp.type == "value"){
     if(left){
       return {
