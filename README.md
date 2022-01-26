@@ -27,7 +27,13 @@ Current CPU:
 Current build system:
   + v2build
 
-OS v1:
+OS v3:
+  + Min CPU: v2
+  + Max CPU: current
+  + Min build system: v2
+  + Max build system: current
+
+OS v2:
   + Min CPU: v2
   + Max CPU: current
   + Min build system: v2
