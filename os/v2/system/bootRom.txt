@@ -1,4 +1,4 @@
-; ERISC 4.0 Boot ROM
+; ERISC OS v2 Boot ROM
 
 ; Jump away (minimise wasted space)
 TRS start,PC

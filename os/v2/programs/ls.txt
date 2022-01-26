@@ -1,4 +1,4 @@
-; ERSIC OS 4.0 ls Command
+; ERSIC OS v2 ls Command
 !link utils/macros.txt
 
 !defU StartUser

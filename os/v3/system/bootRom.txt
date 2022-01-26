@@ -12,7 +12,7 @@ LBL start
 TRS 1,LCD ; status update (working);
 TRS 0,HD-SH
 TRS 0,HD-SL
-TRS 1792,HD-TL ; KERNEL-LENGTH
+TRS 3584,HD-TL ; KERNEL-LENGTH
 TRS 0,HD-WS
 
 ; Print

@@ -130,9 +130,13 @@ function parse(code){
         o.val = hexDec(p);
       } else if(p[0] == "^"){
         p = p.slice(1);
-        o.val = toASCII(p)[0];
+        o.val = toASCII(p+" ")[0];
       } else {
         o.val = p;
+      }
+      if(o.val == undefined){
+        console.error("Malformed parameter: \""+line+"\"");
+        process.exit(1);
       }
       return o;
     });
@@ -174,7 +178,11 @@ function compileP(parsed){
     } else if(l.op == "LBL"){
       adrs[l.params[0].val] = ops.length;
     } else if(l.op == "DEF"){
-      adrs[l.params[0].val] = l.params[1].val;
+      if(Number.isNaN(l.params[1].val*1)){
+        adrs[l.params[0].val] = adrs[l.params[1].val];
+      } else {
+        adrs[l.params[0].val] = l.params[1].val;
+      }
     }
   }
   let next = ops.length;

@@ -15,8 +15,8 @@ define changePointers returnToShell
   = {toPath: changePath, param: changeParam}; 
 
 function stackless void MAIN(){
-  //print 15 blank lines
-  for(define int i=0;i<15;set i=i+1){
+  //print 15 \ns
+  for(define int i=0;i<15;i=i+1){
     asm "!defU kCall 0 10";
   };
 
@@ -26,5 +26,5 @@ function stackless void MAIN(){
 
 function stackless void INTERRUPT(){
   //ignore character input
-  asm "!defU kCall 1 0";
+  while(true){asm "!defU kCall 1 0";};
 };

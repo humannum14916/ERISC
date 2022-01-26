@@ -102,6 +102,12 @@ f/*module.exports*/ = async function(bootf,diskf,keyBuffer){
         return (this.inputA > this.inputB)?1:0;
       } else if(this.config == 3){
         return (this.inputA < this.inputB)?1:0;
+      } else if(this.config == 4){
+        return this.inputA & this.inputB;//TEMP
+      } else if(this.config == 5){
+        return ~this.inputA;//TEMP
+      } else if(this.config == 6){
+        return this.inputA | this.inputB;//TEMP
       } else {
         error("Undefined ALU config: "+this.config);
       }
@@ -534,6 +540,9 @@ f/*module.exports*/ = async function(bootf,diskf,keyBuffer){
       +decHex(mem.read(instr+1)));
     console.log("At adress "+decHex(instrR));
     console.log();
+    console.log("Main PC: "+decHex(getBusDevice("ProgCounter").mainPC));
+    console.log("Interrupt PC: "+decHex(getBusDevice("ProgCounter").interruptPC));
+    console.log();
     console.log("Bus history (newest first):");
     busHistory.reverse();
     busHistory = busHistory.slice(0,historyLen);
@@ -629,7 +638,7 @@ f/*module.exports*/ = async function(bootf,diskf,keyBuffer){
       let r = d.busWrite({adr:adr+"",data:data});
       if(r){
         if(r.endCycle){
-          return;
+          break;
         } else if(r.adrOverride){
           adr = r.adrOverride;
         }

@@ -1,5 +1,5 @@
-; ERISC OS 3.0
-; Help script
+; ERISC OS v1
+; plist program
 
 !link macros.txt
 

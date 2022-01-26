@@ -1,4 +1,4 @@
-; ERISC OS 4.0 Macros
+; ERISC OS v2 Macros
 
 
 ; Conditional Jump (== 1)

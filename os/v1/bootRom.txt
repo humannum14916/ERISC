@@ -1,4 +1,4 @@
-; ERISC OS 3.0
+; ERISC OS v1
 ; Boot ROM
 
 !link macros.txt
@@ -23,7 +23,7 @@ TRS 1,LCD ; Status update (working)
 
 
 ; Print message:
-; Welcome to ERISC OS 3.0
+; Welcome to ERISC OS v1
 ; Run "plist" for available programs
 TRS 87,TTY  ; W
 TRS 101,TTY ; e
@@ -45,9 +45,8 @@ TRS 32,TTY  ; _
 TRS 79,TTY  ; O
 TRS 83,TTY  ; S
 TRS 32,TTY  ; _
-TRS 51,TTY  ; 3
-TRS 46,TTY  ; .
-TRS 48,TTY  ; 0
+TRS 118,TTY  ; v
+TRS 49,TTY  ; 1
 TRS 10,TTY  ; \n
 TRS 82,TTY  ; R
 TRS 117,TTY ; u

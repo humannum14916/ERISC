@@ -1,154 +1,66 @@
-; ERSIC OS 4.0 cd Command
-!link utils/macros.txt
 
-!defU StartUser
+meta header userspace;
 
+struct changePointers {
+  array[char] toPath,
+  array[char] param
+};
 
-; Allocate memory
-TRS @200,CWD
-TRS @300,Param
+define array[char] changePath
+  = "/Programs/shell";
 
-; Setup return pointers
-TRS ChangeProg-Pointers,$2
-TRS ChangeProg-DestPath,#0
-TRS ChangeProg-Pointers,ChangeProg-Pointer2
-!defU Incrament ChangeProg-Pointer2
-TRS ChangeProg-Pointer2,$2
-TRS ChangeProg-Params,#0
+define array[char] changeParam = 0;
 
+define changePointers returnToShell
+  = {toPath: changePath, param: changeParam}; 
 
-; Load the CWD
-!defU kCall 5 CWD
+define array[char] cwd = 256;
+define array[char] param = 256;
 
-; Load the parameter
-!defU kCall 4 Param
+function stackless void MAIN(){
+  //load the CWD and parameter
+  asm "!defU kCall 5 cwd";
+  asm "!defU kCall 4 param";
+  
+  //find the end of the CWD
+  define int cwdEnd = 0;
+  while(!(cwd[cwdEnd] == null)){
+    cwdEnd = cwdEnd + 1;
+  };
 
-TRS CWD,CWD-End
+  //check for .
+  if(param[0] == "." & param[1] == null){
+    //is ., got up one directory
+    while(!(cwd[cwdEnd] == "/")){
+      cwdEnd = cwdEnd - 1;
+    };
+    if(cwdEnd == 0){
+      cwdEnd = cwdEnd + 1;
+    };
+    cwd[cwdEnd] = null;
+  } else {
+    //not ., add param to CWD
+    if(!(cwdEnd == 1)){
+      //not in root dir, add / to CWD
+      cwd[cwdEnd] = "/";
+      cwdEnd = cwdEnd + 1;
+    };
+    //add param to CWD
+    define int paramIndex = 0;
+    while(!(param[paramIndex] == null)){
+      cwd[cwdEnd+paramIndex] = param[paramIndex];
+      paramIndex = paramIndex + 1;
+    };
+  };
 
-; Find end loop
-LBL FindEnd-Back
+  //set CWD
+  asm "!defU kCall 6 cwd";
 
-; Incrament the end pointer
-!defU Incrament CWD-End
+  //return to the shell
+  asm "!defU kCall 3 returnToShell";
+};
 
-; Check if null
-TRS CWD-End,$1
-TRS #0,Temp
-!defU Compare Temp 0 Temp
-!defU cJump Temp EndFound
-
-; Loop
-TRS FindEnd-Back,PC
-
-LBL EndFound
-
-; Check if .
-TRS Param,ParamScan
-TRS ParamScan,$1
-TRS #0,Temp
-!defU Compare Temp 46 Temp
-!defU cJump Temp CheckBack
-TRS AddToCWD,PC
-LBL CheckBack
-!defU Incrament ParamScan
-TRS ParamScan,$1
-TRS #0,Temp
-!defU Compare Temp 0 Temp
-!defU cJump Temp Backtrack
-LBL AddToCWD
-
-; Skip / add if in root dir
-TRS CWD-End,ALU-A
-TRS CWD,ALU-B
-TRS 32,ALU-C ; Set mode (subtract)
-TRS ALU-O,Temp
-!defU Compare Temp 1 Temp
-!defU cJump Temp AddParam
-
-; Add a /
-TRS CWD-End,$2
-TRS 47,#0
-!defU Incrament CWD-End
-
-LBL AddParam
-
-; Copy parameter to end of CWD
-TRS Param,CopyString-From
-TRS CWD-End,CopyString-To
-!defU callF CopyString
-
-TRS Done,PC
-
-; Backtrack loop
-LBL Backtrack
-
-; Decrament the pointer
-TRS CWD-End,ALU-A
-TRS 1,ALU-B
-TRS 32,ALU-C ; Set mode (subtract)
-TRS ALU-O,CWD-End
-
-; Check if /
-TRS CWD-End,$1
-TRS #0,Temp
-!defU Compare Temp 47 Temp
-!defU cJump Temp Backtrack-Done
-
-; Loop
-TRS Backtrack,PC
-
-LBL Backtrack-Done
-
-; Check if in root dir
-TRS CWD-End,ALU-A
-TRS CWD,ALU-B
-TRS 1,ALU-C ; Set mode (subtract)
-TRS ALU-O,Temp
-!defU Compare Temp 0 Temp
-!defU cJump Temp Backtrack-InRoot
-TRS Backtrack-CutString,PC
-LBL Backtrack-InRoot
-
-!defU Incrament CWD-End
-
-LBL Backtrack-CutString
-
-; Insert the null
-TRS CWD-End,$2
-TRS 0,#0
-
-LBL Done
-
-; Store CWD
-!defU kCall 6 CWD
-
-; Return to the shell
-!defU kCall 3 ChangeProg-Pointers
-
-
-!link utils/copyString.txt
-
-
-; Ignore character input
-LBL INTERRUPT
-!defU kCall 1 0
-TRS INTERRUPT,PC
-
-
-; Program change info
-LBL ChangeProg-Pointers
-TRS #0,#0
-
-LBL ChangeProg-DestPath
-; /Programs/shell
-TRS #47,#80
-TRS #114,#111
-TRS #103,#114
-TRS #97,#109
-TRS #115,#47
-TRS #115,#104
-TRS #101,#108
-TRS #108,#0
-
-LBL ChangeProg-Params
-TRS #0,#0
+function stackless void INTERRUPT(){
+  //ignore character input
+  while(true){asm "!defU kCall 1 0";};
+};

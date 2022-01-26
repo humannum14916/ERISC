@@ -22,14 +22,14 @@ function stackless void MAIN(){
 
   //print loop
   define char curChar = null;
-  for(define int i=0;i<toPrint->length;set i=i+1){
+  for(define int i=0;i<toPrint->length;i=i+1){
     //get current character
-    set curChar = toPrint[i];
+    curChar = toPrint[i];
 
     //null check
-    if(curChar == 0){
+    if(curChar == null){
       //break
-      set i = toPrint->length;
+      i = toPrint->length;
     } else {
       //print it
       asm "!defU kCall 0 MAIN.curChar";
@@ -45,5 +45,5 @@ function stackless void MAIN(){
 
 function stackless void INTERRUPT(){
   //ignore character input
-  asm "!defU kCall 1 0";
+  while(true){asm "!defU kCall 1 0";};
 };

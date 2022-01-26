@@ -1,0 +1,9 @@
+;---------------;
+; Kernel Header ;
+;---------------;
+
+TRS USERRET,PC
+
+TRS #0,#0
+
+TRS MAIN,PC
