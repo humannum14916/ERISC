@@ -10,8 +10,10 @@ const {
   collectType,branchify,structResolve,extractLDefs
 } = require("./compilerModules/assorted.js");
 
-function compile(program,root){
+function compile(program,root,file){
   misc.error.file = program;
+  misc.error.path = file;
+  misc.error.root = root;
   //lex
   program = parsing.lex(program);
   //parse
@@ -99,6 +101,6 @@ const {serve} = require("../../utils/ioWrap.js");
 
 serve((d,params)=>{
   if(!params[0]) error("No build root!");
-  let o = compile(d,params[0]);
+  let o = compile(d,params[0],params[1]);
   return o;
 });

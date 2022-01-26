@@ -9,7 +9,7 @@ function error(m,at){
 }
 
 function formAt(at){
-  return "at line "+at.line+", column "+at.column;
+  return `at ${error.root}${error.path}:${at.line}:${at.column}`;
 }
 
 function typeCheck(v,e,ev){

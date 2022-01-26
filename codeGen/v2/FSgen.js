@@ -23,7 +23,7 @@ function buildExec(file,source,root){
   } else if(file.build == "cl"){
     let compiled = call(
       "codeGen/v2/compiler.js",
-      source,[root]
+      source,[root,file.kernel || file.source]
     );
     return formatCode(
       JSON.parse(call(
