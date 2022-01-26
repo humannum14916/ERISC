@@ -78,10 +78,16 @@ function backResolve(g,o,temps,exp,to,left=false){
         thing,index
       }]};
     }
+    //type of thing
+    let thingType = varType(g,thing);
+    if(thing.castType) thingType = thing.castType;
+    //check that the type is dereferencable
+    if(!thingType.subType)
+      misc.error(`Type ${typeStr(thingType)} is not dereferencable`,thing);
     //get destination
     if(!to){
       to = {type:"word",value:getTemp(
-        g,temps,varType(g,thing).subType
+        g,temps,thingType.subType
       )};
     }
     //add
