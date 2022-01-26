@@ -110,9 +110,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       o.push({
         type:"set",dest:to,value:exp.value
       });
-      return {
-        type:"word",value:to,castType:exp.castType
-      };
+      return to;
     }
     return Object.assign(
       exp.value,{castType:exp.castType}
