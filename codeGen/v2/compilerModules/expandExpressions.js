@@ -11,7 +11,7 @@ function expand(f,g){
   //loop through contents
   for(let c of f.contents){
     if(c.type == "set"){
-      let {to,writeDest} = backResolve(
+      let {to,writeDest,destType} = backResolve(
         g,o,temps,c.dest,null,true
       );
       let f = backResolve(g,o,temps,c.exp,to);
@@ -72,8 +72,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       g,o,temps,exp.index
     );
     //type of thing
-    let thingType = varType(g,thing);
-    if(thing.castType) thingType = thing.castType;
+    let thingType = compType(g,thing);
     //check that the type is dereferencable
     if(!thingType.subType)
       misc.error(`Type ${typeStr(thingType)} is not dereferencable`,thing);
@@ -82,7 +81,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       return {writeDest:[{
         type:"derefNset",
         thing,index
-      }]};
+      }],destType:thingType};
     }
     //get destination
     if(!to){
@@ -102,7 +101,10 @@ function backResolve(g,o,temps,exp,to,left=false){
     backResolveCallParams(g,o,temps,exp,to);
   } else if(exp.type == "value"){
     if(left){
-      return {to:exp.value,writeDest:[]};
+      return {
+        to:exp.value,writeDest:[],
+        destType:compType(g,exp.value)
+      };
     }
     if(to){
       o.push({
@@ -160,7 +162,8 @@ function backResolve(g,o,temps,exp,to,left=false){
       if(left){
         return {writeDest:[{
           type:"derefNset",
-          thing:exp.a.value,index
+          thing:exp.a.value,index,
+          destType:slot
         }]};
       }
       //add
@@ -189,8 +192,6 @@ function backResolve(g,o,temps,exp,to,left=false){
     let at = typeStr(compType(g,a));
     let bt;
     if(b) bt = typeStr(compType(g,b));
-    if(a.castType) at = typeStr(a.castType);
-    if(bt && b.castType) bt = typeStr(b.castType);
     //type check
     let opReq = {
       "+":{types:[["int"],["int"]],match:true},
@@ -302,6 +303,7 @@ function varType(g,varN){
 }
 
 function compType(g,c){
+  if(c.castType) return c.castType;
   if(c.type == "number") return {name:{type:"word",value:"int"}};
   if(c.type == "null") return {name:{type:"word",value:"null"}};
   if(c.type == "word") return varType(g,c);
