@@ -45,6 +45,7 @@ while(args.length != 0){
       "v1":"os/v1/build.js",
       "v2":"os/v2/build.js",
       "v3":"os/v3/build.js",
+      "v4":"os/v4/build.js",
     }[name];
     if(!buildScript) error("Unkown build name \""+name+"\"");
     call(buildScript);
