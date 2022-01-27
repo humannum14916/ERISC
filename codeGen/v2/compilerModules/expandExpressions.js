@@ -1,7 +1,7 @@
 const misc = require("./misc.js");
 
 function expand(f,g){
-  misc.log(`Expanding function ${f.name}...`);
+  //misc.log(`Expanding function ${f.name}...`);
   //output list
   let o = [];
   //temp bin
@@ -38,7 +38,7 @@ function expand(f,g){
     }
   }
   //log statistics
-  misc.log(`Used ${temps.total} temps, ${temps.freed} reuses`);
+  //misc.log(`Used ${temps.total} temps, ${temps.freed} reuses`);
   //return
   return o;
 }
