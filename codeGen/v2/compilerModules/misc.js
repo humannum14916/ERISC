@@ -1,5 +1,5 @@
 function error(m,at){
-  console.error("Error: "+m);
+  log("Error: "+m);
   if(at){
     console.error(formAt(at));
     console.error(error.file.split("\n")[at.line-1]);
@@ -19,7 +19,7 @@ function typeCheck(v,e,ev){
 }
 
 function log(m){
-  console.error("[Compiler][Progress]:"+m);
+  console.error("[Compiler] "+m);
 }
 
 //export
