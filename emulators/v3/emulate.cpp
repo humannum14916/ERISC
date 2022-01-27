@@ -509,7 +509,7 @@ BusReturn disk_writeDevice(unsigned int adr, unsigned int data){
 void disk_takeCycle(){
   //get word from disk
   unsigned int word = disk_disk[
-    disk_source + disk_transferScan
+    disk_source * 256 + disk_transferScan
   ];
   //write word to bus
   busWrite(
