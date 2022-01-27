@@ -22,19 +22,17 @@ utils:
 ## Compatability
 
 Current CPU:
-  + v2cpu
+  + v3cpu
 
 Current build system:
   + v3build
 
 OS v3:
-  + Min CPU: v2
-  + Max CPU: current
+  + CPU: v2
   + Build system: v2
 
 OS v2:
-  + Min CPU: v2
-  + Max CPU: current
+  + CPU: v2
   + Build system: v2
 
 OS v1:
