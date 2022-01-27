@@ -79,11 +79,7 @@ function compile(program,root,file){
     ";-------------;\n\n"+
     stringify.stringifyD(defines,structs);
   //build output
-  let output = 
-    ";----------------;\n"+
-    "; Default Header ;\n"+
-    ";----------------;\n\n"+
-    "!link utils/macros.txt\n\n";
+  let output = readFileSync(root+"headers/default");
   //userspace header
   metadata.forEach(m=>{
     if(m.key.value == "header"){
