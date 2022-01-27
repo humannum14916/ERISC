@@ -320,6 +320,7 @@ function freeTemp(temps,v){
       let type = v.value.split("_");
       type = type[type.length - 2];
       temps[type].push(v.value);
+      temps.freed++;
     }
 }
 
