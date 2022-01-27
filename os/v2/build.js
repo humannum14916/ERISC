@@ -15,4 +15,4 @@ console.error("Boot ROM assembled");
 console.error("Building filesystem...");
 call("codeGen/v2/FSgen.js","null",["-o",dest+"/disk",source+"/",dest]);
 console.error("Filesystem built");
-console.error("OS built");
+console.error("Build complete");
