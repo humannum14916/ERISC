@@ -11,11 +11,13 @@ function expand(f,g){
   //loop through contents
   for(let c of f.contents){
     if(c.type == "set"){
-      let {to,writeDest,destType} = backResolve(
+      let {to,writeDest,destType,toFree} = backResolve(
         g,o,temps,c.dest,null,true
       );
       let f = backResolve(g,o,temps,c.exp,to);
+      toFree.forEach(t=>{freeTemp(temps,t)});
       o = o.concat(writeDest);
+      freeTemp(temps,f);
       let toType = typeStr(destType);
       let fromType = typeStr(compType(g,f));
       if(
@@ -87,7 +89,8 @@ function backResolve(g,o,temps,exp,to,left=false){
       return {writeDest:[{
         type:"derefNset",
         thing,index
-      }],destType:thingType.subType};
+      }],destType:thingType.subType,
+      toFree:[thing,index]};
     }
     //get destination
     if(!to){
@@ -97,6 +100,9 @@ function backResolve(g,o,temps,exp,to,left=false){
         g,temps,tempType
       )};
     }
+    //free temps
+    freeTemp(temps,thing);
+    freeTemp(temps,index);
     //add
     o.push({
       type:"dereference",
@@ -104,14 +110,16 @@ function backResolve(g,o,temps,exp,to,left=false){
     });
     return to;
   } else if(exp.type == "call"){
+    if(left) misc.error("Cannot use function call as set dest",exp.name.value);
     //resolve call
-    exp.name = exp.name.value
+    exp.name = exp.name.value;
     return backResolveCallParams(g,o,temps,exp,to);
   } else if(exp.type == "value"){
     if(left){
       return {
         to:exp.value,writeDest:[],
-        destType:compType(g,exp.value)
+        destType:compType(g,exp.value),
+        toFree:[]
       };
     }
     if(to){
@@ -148,6 +156,7 @@ function backResolve(g,o,temps,exp,to,left=false){
         });
         return to;
       }
+      freeTemp(temps,exp.a.value);
       return length;
     } else {
       //struct access
@@ -169,13 +178,17 @@ function backResolve(g,o,temps,exp,to,left=false){
         return {writeDest:[{
           type:"derefNset",
           thing:exp.a.value,index
-        }],destType:slot.type};
+        }],destType:slot.type,
+        toFree:[exp.a.value]};
       }
       //add
       o.push({
         type:"dereference",
         thing:exp.a.value,index,to
       });
+      //free temps
+      freeTemp(exp.a.value);
+      //return
       return {type:"word",value:to};
     }
   } else {
@@ -257,6 +270,10 @@ function backResolve(g,o,temps,exp,to,left=false){
       opType:exp.type,
       a,b,to
     });
+    //free temps
+    freeTemp(temps,a);
+    if(b) freeTemp(temps,b);
+    //return
     return to;
   }
 }
@@ -281,16 +298,26 @@ function getTemp(g,temps,typeR){
       temps.template+type+"_"+temps.total
     );
     temps.total++;
+    //add temp definition
+    g.define[temps[type][temps[type].length-1]] = {
+      valType:typeR,
+      value:{type:"null",value:null}
+    };
   }
   //get temp
   let temp = temps[type].shift();
-  //add temp definition
-  g.define[temp] = {
-    valType:typeR,
-    value:{type:"null",value:null}
-  };
   //return temp
   return temp;
+}
+
+function freeTemp(temps,v){
+  if(
+    v.type == "word" &&
+    v.value.indexOf("__COMPILER_TEMP_") == 0){
+      let type = v.value.split("_");
+      type = type[type.length - 2];
+      temps[type].push(v.value);
+    }
 }
 
 function toType(t){
