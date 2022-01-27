@@ -18,5 +18,9 @@ function typeCheck(v,e,ev){
   if(ev && v.value != ev) error("Expected "+ev+", got "+v.value,v);
 }
 
+function log(m){
+  console.error("[Compiler][Progress]:"+m);
+}
+
 //export
-module.exports = {error,formAt,typeCheck};
+module.exports = {error,formAt,typeCheck,log};
