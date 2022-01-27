@@ -1,12 +1,13 @@
 const misc = require("./misc.js");
 
 function expand(f,g){
+  misc.log(`Expanding function ${f.name}...`);
   //output list
   let o = [];
   //temp bin
   let temps = {
     total:0,template:"__COMPILER_TEMP_"
-    +f.name+"_"
+    +f.name+"_",freed:0
   };
   //loop through contents
   for(let c of f.contents){
@@ -36,6 +37,8 @@ function expand(f,g){
       o.push(c);
     }
   }
+  //log statistics
+  misc.log(`Used ${temps.total} temps, ${temps.freed} reuses`);
   //return
   return o;
 }
