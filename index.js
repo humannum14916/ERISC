@@ -38,6 +38,7 @@ while(args.length != 0){
     await exec("git",["pull"]);
     console.log("Recompiling emulators...");
     await buildEmu("emulators/v2/emulate");
+    await buildEmu("emulators/v3/emulate");
     console.log("Emulators built");
   } else if(command == "build"){
     let name = args.shift();
@@ -53,6 +54,7 @@ while(args.length != 0){
     let emu = args.shift();
     let image = args.shift();
     emu = {
+      "v3":{command:"emulators/v3/emulate",args:[]},
       "v2":{command:"emulators/v2/emulate",args:[]},
       "v2JS":{command:"node",args:["emulators/v2/emulate.js"]},
       "v1":{command:"node",args:["emulators/v1/emulate.js"]},
