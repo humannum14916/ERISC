@@ -56,7 +56,7 @@ function stackless void MAIN(){
   define int childIndex = 0;
   while(!(cwd[dataBlockIndex] == null)){
     //load the data block
-    loadPointers->diskAdr = cwd[dataBlockIndex];
+    loadPointers->diskAdr = {int}(cwd[dataBlockIndex]);
     loadPointers->dest = dataBlock;
     asm "!defU kCall 7 loadPointers";
 
@@ -64,7 +64,7 @@ function stackless void MAIN(){
     while(!(dataBlock[childIndex] == null)){
       //load the child header
       loadPointers->diskAdr
-        = dataBlock[childIndex];
+        = {int}dataBlock[childIndex];
       loadPointers->dest = childHeader;
       asm "!defU kCall 7 loadPointers";
 

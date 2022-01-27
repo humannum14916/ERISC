@@ -56,7 +56,7 @@ function stackless void MAIN(){
   
   //load the target file's header
   loadPointers->diskAdr = targetAdr;
-  loadPointers->dest = targetHeader;
+  loadPointers->dest = {array[char]}targetHeader;
   asm "!defU kCall 7 loadPointers";
 
   //loop through data blocks
