@@ -16,6 +16,9 @@ async function exec(command,params,options){
   await new Promise(r=>{proc.on("close",r);});
 }
 
+console.logO = console.log;
+console.log = m=>{console.logO("[Driver] "+m)};
+
 async function buildEmu(p){
   await exec("clang++-7",[
     "-pthread","-std=c++17","-o",

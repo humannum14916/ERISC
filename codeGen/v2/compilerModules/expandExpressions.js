@@ -1,21 +1,30 @@
 const misc = require("./misc.js");
 
 function expand(f,g){
+  //misc.log(`Expanding function ${f.name}...`);
   //output list
   let o = [];
   //temp bin
   let temps = {
     total:0,template:"__COMPILER_TEMP_"
-    +f.name+"_"
+    +f.name+"_",freed:0
   };
   //loop through contents
   for(let c of f.contents){
     if(c.type == "set"){
-      let {to,writeDest} = backResolve(
+      let {to,writeDest,destType,toFree} = backResolve(
         g,o,temps,c.dest,null,true
       );
       let f = backResolve(g,o,temps,c.exp,to);
+      toFree.forEach(t=>{freeTemp(temps,t)});
       o = o.concat(writeDest);
+      freeTemp(temps,f);
+      let toType = typeStr(destType);
+      let fromType = typeStr(compType(g,f));
+      if(
+        toType != fromType &&
+        (toType != "null" && fromType != "null")
+      ) misc.error(`Cannot write type ${fromType} to ${toType}`,c);
       if(!to){
         o[o.length - 1].value = f;
       }
@@ -28,6 +37,8 @@ function expand(f,g){
       o.push(c);
     }
   }
+  //log statistics
+  //misc.log(`Used ${temps.total} temps, ${temps.freed} reuses`);
   //return
   return o;
 }
@@ -71,25 +82,30 @@ function backResolve(g,o,temps,exp,to,left=false){
     let index = backResolve(
       g,o,temps,exp.index
     );
+    //type of thing
+    let thingType = compType(g,thing);
+    //check that the type is dereferencable
+    if(!thingType.subType)
+      misc.error(`Type ${typeStr(thingType)} is not dereferencable`,thing);
     //left-side logic
     if(left){
       return {writeDest:[{
         type:"derefNset",
         thing,index
-      }]};
+      }],destType:thingType.subType,
+      toFree:[thing,index]};
     }
-    //type of thing
-    let thingType = varType(g,thing);
-    if(thing.castType) thingType = thing.castType;
-    //check that the type is dereferencable
-    if(!thingType.subType)
-      misc.error(`Type ${typeStr(thingType)} is not dereferencable`,thing);
     //get destination
     if(!to){
+      let tempType = thingType.subType;
+      if(exp.castType) tempType = exp.castType;
       to = {type:"word",value:getTemp(
-        g,temps,thingType.subType
+        g,temps,tempType
       )};
     }
+    //free temps
+    freeTemp(temps,thing);
+    freeTemp(temps,index);
     //add
     o.push({
       type:"dereference",
@@ -97,20 +113,23 @@ function backResolve(g,o,temps,exp,to,left=false){
     });
     return to;
   } else if(exp.type == "call"){
+    if(left) misc.error("Cannot use function call as set dest",exp.name.value);
     //resolve call
-    exp.name = exp.name.value
-    backResolveCallParams(g,o,temps,exp,to);
+    exp.name = exp.name.value;
+    return backResolveCallParams(g,o,temps,exp,to);
   } else if(exp.type == "value"){
     if(left){
-      return {to:exp.value,writeDest:[]};
+      return {
+        to:exp.value,writeDest:[],
+        destType:compType(g,exp.value),
+        toFree:[]
+      };
     }
     if(to){
       o.push({
         type:"set",dest:to,value:exp.value
       });
-      return {
-        type:"word",value:to,castType:exp.castType
-      };
+      return to;
     }
     return Object.assign(
       exp.value,{castType:exp.castType}
@@ -138,8 +157,9 @@ function backResolve(g,o,temps,exp,to,left=false){
         o.push({
           type:"set",dest:to,value:length
         });
-        return {type:"word",value:to};
+        return to;
       }
+      freeTemp(temps,exp.a.value);
       return length;
     } else {
       //struct access
@@ -161,13 +181,17 @@ function backResolve(g,o,temps,exp,to,left=false){
         return {writeDest:[{
           type:"derefNset",
           thing:exp.a.value,index
-        }]};
+        }],destType:slot.type,
+        toFree:[exp.a.value]};
       }
       //add
       o.push({
         type:"dereference",
         thing:exp.a.value,index,to
       });
+      //free temps
+      freeTemp(exp.a.value);
+      //return
       return {type:"word",value:to};
     }
   } else {
@@ -189,8 +213,6 @@ function backResolve(g,o,temps,exp,to,left=false){
     let at = typeStr(compType(g,a));
     let bt;
     if(b) bt = typeStr(compType(g,b));
-    if(a.castType) at = typeStr(a.castType);
-    if(bt && b.castType) bt = typeStr(b.castType);
     //type check
     let opReq = {
       "+":{types:[["int"],["int"]],match:true},
@@ -251,6 +273,10 @@ function backResolve(g,o,temps,exp,to,left=false){
       opType:exp.type,
       a,b,to
     });
+    //free temps
+    freeTemp(temps,a);
+    if(b) freeTemp(temps,b);
+    //return
     return to;
   }
 }
@@ -275,16 +301,27 @@ function getTemp(g,temps,typeR){
       temps.template+type+"_"+temps.total
     );
     temps.total++;
+    //add temp definition
+    g.define[temps[type][temps[type].length-1]] = {
+      valType:typeR,
+      value:{type:"null",value:null}
+    };
   }
   //get temp
   let temp = temps[type].shift();
-  //add temp definition
-  g.define[temp] = {
-    valType:typeR,
-    value:{type:"null",value:null}
-  };
   //return temp
   return temp;
+}
+
+function freeTemp(temps,v){
+  if(
+    v.type == "word" &&
+    v.value.indexOf("__COMPILER_TEMP_") == 0){
+      let type = v.value.split("_");
+      type = type[type.length - 2];
+      temps[type].push(v.value);
+      temps.freed++;
+    }
 }
 
 function toType(t){
@@ -302,6 +339,7 @@ function varType(g,varN){
 }
 
 function compType(g,c){
+  if(c.castType) return c.castType;
   if(c.type == "number") return {name:{type:"word",value:"int"}};
   if(c.type == "null") return {name:{type:"word",value:"null"}};
   if(c.type == "word") return varType(g,c);

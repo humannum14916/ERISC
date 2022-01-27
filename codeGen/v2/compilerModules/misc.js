@@ -1,5 +1,5 @@
 function error(m,at){
-  console.error("Error: "+m);
+  log("Error: "+m);
   if(at){
     console.error(formAt(at));
     console.error(error.file.split("\n")[at.line-1]);
@@ -9,7 +9,7 @@ function error(m,at){
 }
 
 function formAt(at){
-  return "at line "+at.line+", column "+at.column;
+  return `at ${error.root}${error.path}:${at.line}:${at.column}`;
 }
 
 function typeCheck(v,e,ev){
@@ -18,5 +18,9 @@ function typeCheck(v,e,ev){
   if(ev && v.value != ev) error("Expected "+ev+", got "+v.value,v);
 }
 
+function log(m){
+  console.error("[Compiler] "+m);
+}
+
 //export
-module.exports = {error,formAt,typeCheck};
+module.exports = {error,formAt,typeCheck,log};
