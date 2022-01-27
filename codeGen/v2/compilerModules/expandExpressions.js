@@ -16,7 +16,7 @@ function expand(f,g){
       );
       let f = backResolve(g,o,temps,c.exp,to);
       o = o.concat(writeDest);
-      let toType = typeStr(destType)
+      let toType = typeStr(destType);
       let fromType = typeStr(compType(g,f));
       if(
         toType != fromType &&
@@ -91,8 +91,10 @@ function backResolve(g,o,temps,exp,to,left=false){
     }
     //get destination
     if(!to){
+      let tempType = thingType.subType;
+      if(exp.castType) tempType = exp.castType;
       to = {type:"word",value:getTemp(
-        g,temps,thingType.subType
+        g,temps,tempType
       )};
     }
     //add
