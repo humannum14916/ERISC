@@ -17,7 +17,7 @@ async function exec(command,params,options){
 }
 
 console.logO = console.log;
-console.log = m=>{console.logO("[Driver]"+m)};
+console.log = m=>{console.logO("[Driver] "+m)};
 
 async function buildEmu(p){
   await exec("clang++-7",[
