@@ -6,6 +6,9 @@ const write = fs.writeFileSync;
 const path = require("path");
 const {serve,call} = require("../../utils/ioWrap.js");
 
+console.errorO = console.error;
+console.error = m=>{console.errorO("[FSgen] "+m)};
+
 function error(e){
   console.error("FS build error:");
   console.error(e);
@@ -14,6 +17,7 @@ function error(e){
 
 function buildExec(file,source,root){
   if(file.build == "asm"){
+    console.error(`Assembling ${file.kernel || file.source}`);
     return formatCode(
       JSON.parse(call(
         "codeGen/v2/assembler.js",
@@ -21,10 +25,12 @@ function buildExec(file,source,root){
       )
     );
   } else if(file.build == "cl"){
+    console.error(`Compiling ${file.kernel || file.source}`);
     let compiled = call(
       "codeGen/v2/compiler.js",
       source,[root,file.kernel || file.source]
     );
+    console.error(`Assembling ${file.kernel || file.source}`);
     return formatCode(
       JSON.parse(call(
         "codeGen/v2/assembler.js",
