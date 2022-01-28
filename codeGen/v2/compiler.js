@@ -18,13 +18,8 @@ function compile(program,root,file){
   program = parsing.lex(program,root);
   //parse
   program = parsing.parseStructureBlock(program);
-  //collect components
-  let functions = collectType(program,"function");
-  let structs = collectType(program,"struct");
-  let metadata = collectType(program,"metadata");
-  let defines = collectType(program,"define");
   //branchify functions
-  functions.map(f=>{
+  collectType(program,"function").map(f=>{
     f.contents = branchify(f.contents);
   });
   //name resolution for definitions
@@ -35,6 +30,11 @@ function compile(program,root,file){
   nameResolution.nameResolve(program);
   //remove namespaces and scopes
   nameResolution.finishResolution(program);
+  //collect other components
+  let functions = collectType(program.contents,"function");
+  let structs = collectType(program.contents,"struct");
+  let metadata = collectType(program.contents,"metadata");
+  let defines = collectType(program.contents,"define");
   //determine struct layout
   structs = structResolve(structs);
   //neaten definitions
