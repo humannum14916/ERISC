@@ -135,6 +135,9 @@ function stringifyD(ds,structs){
             }
             chars.shift();
             a.push("@"+hex);
+          } else if(chars[0] == ","){
+            a.push("@2c");
+            chars.shift();
           } else {
             a.push("^"+chars.shift());
           }
