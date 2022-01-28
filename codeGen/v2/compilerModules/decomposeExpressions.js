@@ -95,12 +95,12 @@ function dExpression(e){
     }
     return o;
   })(e);
-  //->  * / %  + -  > < ==  & | ^
+  //->  * / %  + -  > < == !=  & | ^
   for(let o of [
     "->",
     "*","/","%",
     "+","-",
-    ">","<","==",
+    ">","<","==","!=",
     "&","|","^"
   ]){
     e = snapOp(e,o);
@@ -122,7 +122,11 @@ function snapOp(exp,op){
     ){
       let a = o.pop();
       let b = exp.shift();
-      o.push({type:op,a,b});
+      if(op == "!="){
+        o.push({type:"!",a:{type:"==",a,b}});
+      } else {
+        o.push({type:op,a,b});
+      }
     } else {
       o.push(c);
     }

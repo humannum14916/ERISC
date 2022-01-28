@@ -247,7 +247,7 @@ function lex(code,root){
     }
     return codeO;
   })(code);
-  //recognize -> and ==
+  //recognize ->, == and !=
   code = (code=>{
     let o = [];
     for(let c of code){
@@ -271,6 +271,18 @@ function lex(code,root){
         o.push({
           type:"token",
           value:"==",
+          line:p.line,
+          column:p.column
+        });
+      } else if(
+        c.type == "token" && c.value == "=" &&
+        o[o.length - 1].type == "token" &&
+        o[o.length - 1].value == "!"
+      ){
+        let p = o.pop();
+        o.push({
+          type:"token",
+          value:"!=",
           line:p.line,
           column:p.column
         });
