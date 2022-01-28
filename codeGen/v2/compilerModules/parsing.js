@@ -1,5 +1,6 @@
 const misc = require("./misc.js");
 const convert = require("../../../utils/convert.js");
+const {readFileSync} = require("fs");
 
 //lexing
 function lex(code,root){
@@ -19,7 +20,7 @@ function lex(code,root){
           let path = code.slice(0,end);
           code = code.slice(end);
           if(linked.indexOf(path) == -1){
-            o += readFileSync(path);
+            o += readFileSync(root + path);
             linked.push(path);
           }
         }

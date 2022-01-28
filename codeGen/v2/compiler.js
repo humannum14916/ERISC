@@ -15,7 +15,7 @@ function compile(program,root,file){
   misc.error.path = file;
   misc.error.root = root;
   //lex
-  program = parsing.lex(program);
+  program = parsing.lex(program,root);
   //parse
   program = parsing.parseStructureBlock(program);
   //collect components
