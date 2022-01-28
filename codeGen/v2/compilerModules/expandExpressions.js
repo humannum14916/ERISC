@@ -45,12 +45,15 @@ function expand(f,g){
 
 function backResolveCallParams(g,o,temps,call,to,){
   //resolve params
+  let prefix = call.name.value.split(".");
+  let fName = prefix.pop();
+  prefix = prefix.join(".")+".";
   for(let i=0;i<call.params.length;i++){
     call.params[i] = backResolve(
       g,o,temps,call.params[i],
       {type:"word",value:
-      "__COMPILER-PARAM-"+
-      call.name.value+"-"+g.function.filter(
+      prefix+"__COMPILER-PARAM-"+
+      fName+"-"+g.function.filter(
         p=>{return p.name == call.name.value}
       )[0].params[i].name.value}
     );
