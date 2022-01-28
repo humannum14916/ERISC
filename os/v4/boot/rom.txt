@@ -1,0 +1,16 @@
+; ERISC v4 Boot ROM
+
+; Jump away (minimise wasted space)
+TRS start,PC
+
+; Load the second-stage bootloader
+LBL load
+TRS 0,HD-TR
+
+; setup to load the next stage
+LBL start
+TRS 1,HD-SR
+TRS 0,HD-DS
+
+; Initiate the load
+TRS load,PC

@@ -1,0 +1,217 @@
+; ERISC OS v4 Macros
+
+
+; Conditional Jump (== 1)
+; %0: Should jump be made
+; %1: Jump destination
+!def cJump
+
+; Set true jump dest
+TRS %1,$16
+
+; Set jump source
+TRS %0,ALU-A
+TRS 0,ALU-C; Set ALU to add
+TRS 5,ALU-B ; Add ofset
+TRS ALU-O,ALU-A
+TRS PC,ALU-B ; Add PC
+TRS ALU-O,$1 ; Transfer
+
+; Jump
+TRS #0,PC
+TRS $2,#0 ; Filler (jump options go here)
+
+!defE cJump
+
+
+; Incrament a variable
+; %0: Variable to incrament
+!def Incrament
+
+TRS 0,ALU-C ; Set mode (add)
+TRS 1,ALU-B
+TRS %0,ALU-A
+TRS ALU-O,%0
+
+!defE Incrament
+
+
+; Compare two variables
+; %0: Variable 1
+; %1: Variable 2
+; %2: Output
+!def Compare
+
+TRS %0,ALU-A
+TRS %1,ALU-B
+TRS 2,ALU-C ; Set mode(compare)
+TRS ALU-O,%2
+
+!defE Compare
+
+
+; "Break Point" (aka intentional crash)
+; ONLY FOR DEVELOPMENT, ONLY WORKS ON
+; EMULATOR, BAD STUFF WILL HAPPEN ON
+; THE ACTUAL HARDWARE
+!def Break
+; Status update (Induced Crash)
+TRS @ffff,LCD
+; Cause the emulator to error by reading the TTY
+TRS TTY,#57005
+!defE Break
+
+; %0: value to display
+!def BreakV
+; Print variable to LCD
+TRS %0,LCD
+; Crash
+TRS TTY,#57005
+!defE BreakV
+
+
+; Error
+; %0: error label
+; %1: error status
+!def Error
+LBL %0
+TRS %1,LCD
+TRS TTY,#0
+TRS %0,PC
+!defE Error
+
+
+; Call function
+; %0: function name
+!def callF
+
+; return adress adress
+TRS 32,ALU-C ; Set mode (subtract)
+TRS %0,ALU-A
+TRS 1,ALU-B
+TRS ALU-O,$8
+
+; calculate and store return adress
+TRS 0,ALU-C ; Set mode (add)
+TRS 5,ALU-B
+TRS PC,ALU-A
+TRS ALU-O,#0
+
+; jump to function
+TRS %0,PC
+
+!defE callF
+
+
+; Define function
+; %0: function name
+!def defF
+
+; Return adress storage
+TRS #0,#0
+
+; Function lable
+LBL %0
+
+!defE defF
+
+
+; Return from function
+; %0: function name
+!def retF
+
+; Calculate return adress
+TRS 32,ALU-C ; Set mode (subtract)
+TRS %0,ALU-A
+TRS 1,ALU-B
+TRS ALU-O,$1
+
+; return
+TRS #0,PC
+
+!defE retF
+
+
+; Load something from disk
+; %0: Load from
+; %1: Load to
+!def LoadFromDisk
+
+; Setup for transfer
+TRS %0,HD-SR
+TRS %1,HD-DS
+
+; Store the old status
+TRS LCD,LoadFromDiskMacro-OldStatus
+
+; Status update (loading data)
+TRS 4,LCD
+
+; Transfer
+TRS #0,HD-TR
+
+; Restore old status
+TRS LoadFromDiskMacro-OldStatus,LCD
+
+!defE LoadFromDisk
+
+
+; Enter a program in protected mode
+; %0: Program start adress
+!def EnterUser
+
+; Calculate the length
+TRS %0,ALU-B
+TRS @f000,ALU-A
+TRS 32,ALU-C ; Set mode (subtract)
+
+; Store the parameters
+TRS %0,EnterUser-LastStart
+
+; Configure the bus firewall
+TRS %0,BF-PS
+TRS ALU-O,BF-PL
+
+; Jump into the program
+TRS 0,PC
+
+!defE EnterUser
+
+
+; Header for a program in protected mode
+!def StartUser
+
+; Jump to program
+TRS #2,PC
+
+; Return adress - null
+TRS #8,#0
+
+; Return value - null
+TRS #0,#0
+
+; Jump to interrupt handler
+TRS INTERRUPT,PC
+
+!defE StartUser
+
+
+; Kernel function caller
+; %0: Function id
+; %1: Parameter
+!def kCall
+
+; Update the return adress
+TRS 9,ALU-B
+TRS 0,ALU-C ; Set mode (add)
+TRS PC,ALU-A
+TRS ALU-O,#2
+
+; Store the id and parameter
+TRS %0,ALU-A
+TRS %1,ALU-B
+
+; Exit protected mode
+TRS 0,PC
+
+!defE kCall

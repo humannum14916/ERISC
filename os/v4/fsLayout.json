@@ -1,0 +1,18 @@
+{
+  "diskName":"disk",
+  "reserved":{
+    "type":"compound",
+    "contents":[{
+      "type":"asm",
+      "source":"boot/loader.txt"
+    },{
+      "type":"cl",
+      "source":"kernel.txt"
+    }]
+  },
+  "fsRoot":{
+    "type":"directory",
+    "name":"/",
+    "contents":[]
+  }
+}
