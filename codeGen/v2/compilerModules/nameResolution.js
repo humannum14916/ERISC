@@ -45,6 +45,11 @@ class Scope {
     if(this.values[name.value[0]]){
       //start found, return
       return this.trace()+name.value.join(".");
+    } else if(this.children[name.value[0]]){
+      //in child, pass call
+      let c = this.children[name.value[0]];
+      name.value.shift();
+      return c.resolveS2(name);
     }
     //not found, check parent
     return this.parent.resolveS2(name);
@@ -195,21 +200,18 @@ function finishResolution(program){
   //remove scope
   delete program.scope;
   //loop through children
-  for(let c of program.contents){
+  for(let i = 0; i < program.contents.length; i++){
+    let c = program.contents[i];
     //namespace collapse
     if(c.type == "namespace"){
-      c.contents.forEach(sc=>{
-        finishResolution(sc);
-        program.contents.push(sc);
-      })
+      finishResolution(c);
+      program.contents = program.contents.concat(
+        c.contents
+      );
     }
     //remove scope
     delete c.scope;
   }
-  //namespace removal
-  program.contents = program.contents.filter(c=>{
-    return c.type != "namespace";
-  });
 }
 
 //export
