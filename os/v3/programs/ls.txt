@@ -54,14 +54,14 @@ function stackless void MAIN(){
   //loop through the CWD header data blocks
   define int dataBlockIndex = 1;
   define int childIndex = 0;
-  while(!(cwd[dataBlockIndex] == null)){
+  while(cwd[dataBlockIndex] != null){
     //load the data block
     loadPointers->diskAdr = {int}(cwd[dataBlockIndex]);
     loadPointers->dest = dataBlock;
     asm "!defU kCall 7 loadPointers";
 
     //loop through children
-    while(!(dataBlock[childIndex] == null)){
+    while(dataBlock[childIndex] != null){
       //load the child header
       loadPointers->diskAdr
         = {int}dataBlock[childIndex];
@@ -76,7 +76,7 @@ function stackless void MAIN(){
 
       //print file name
       define int nameIndex = 1;
-      while(!(childHeader[nameIndex] == null)){
+      while(childHeader[nameIndex] != null){
         nameIndex = nameIndex + 1;
       };
       nameIndex = nameIndex + 1;
@@ -101,7 +101,7 @@ function stackless void printStr(
   array[char] str, int index
 ){
   define char curChar = null;
-  while(!(str[index] == null)){
+  while(str[index] != null){
     curChar = str[index];
     asm "!defU kCall 0 printStr.curChar";
     index = index + 1;

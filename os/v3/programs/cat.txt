@@ -34,12 +34,12 @@ function stackless void MAIN(){
 
   //find it's end
   define int cwdEnd = 0;
-  while(!(targetPath[cwdEnd] == null)){
+  while(targetPath[cwdEnd] != null){
     cwdEnd = cwdEnd + 1;
   };
 
   //add a / if not in root
-  if(!(cwdEnd == 1)){
+  if(cwdEnd != 1){
     targetPath[cwdEnd] = "/";
     cwdEnd = cwdEnd + 1;
   };
@@ -61,7 +61,7 @@ function stackless void MAIN(){
 
   //loop through data blocks
   define int dataBlockIndex = 1;
-  while(!(targetHeader[dataBlockIndex] == 0)){
+  while(targetHeader[dataBlockIndex] != 0){
     //load the data block
     loadPointers->diskAdr
       = targetHeader[dataBlockIndex];
