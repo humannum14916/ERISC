@@ -36,6 +36,7 @@ function lex(code,root){
     }
     return o;
   })(code);
+  misc.error.file = code;
   //split into characters
   code = code.split("").map(c=>{
     return {type:"character",value:c}
