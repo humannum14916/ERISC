@@ -5,7 +5,7 @@ function collectType(sb,n,o=[]){
     if(c.type == n){
       o.push(c);
     } else if(c.type == "namespace"){
-      collectFunctions(sb,o);
+      collectType(c.contents,o);
     }
   }
   return o;
