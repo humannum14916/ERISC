@@ -61,7 +61,7 @@ function defCollect(program,prefix="",parent,func){
   if(!parent) parent = {
     defined:n=>{return false;},
     resolveS2:n=>{
-      misc.error("Name \""+n.value+"\" not defined",n);
+      misc.error("Name \""+n.value.join(".")+"\" not defined",n);
     },
     children:{}
   };
