@@ -7,7 +7,7 @@
       "source":"boot/loader.txt"
     },{
       "type":"cl",
-      "source":"kernel.txt"
+      "source":"kernel/main.txt"
     }]
   },
   "fsRoot":{
