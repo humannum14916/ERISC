@@ -1,0 +1,2 @@
+#Treat all OS images as binary
+images/** binary
