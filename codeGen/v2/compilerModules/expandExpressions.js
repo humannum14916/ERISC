@@ -47,7 +47,8 @@ function backResolveCallParams(g,o,temps,call,to,){
   //resolve params
   let prefix = call.name.value.split(".");
   let fName = prefix.pop();
-  prefix = prefix.join(".")+".";
+  prefix = prefix.join(".");
+  if(prefix.length != 0) prefix += ".";
   for(let i=0;i<call.params.length;i++){
     call.params[i] = backResolve(
       g,o,temps,call.params[i],
