@@ -66,12 +66,12 @@ function backResolveCallParams(g,o,temps,call,to,){
     o.push({
       type:"set",dest:to,
       value:{type:"word",
-        value:"__COMPILER_RETURN_"+call.name.value
+        value:prefix+"__COMPILER_RETURN_"+fName
       }
     });
   }
   return {type:"word",
-    value:"__COMPILER_RETURN_"+call.name.value
+    value:prefix+"__COMPILER_RETURN_"+fName
   };
 }
 
