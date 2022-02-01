@@ -779,10 +779,12 @@ function parseCodeLine(line){
     o.push({type:"call",name,params});
   } else {
     line.unshift(lineTypeF);
+    let end = line[line.length - 1];
     //get dest
     let dest = parseExpression(line);
     //remove =
     let equals = line.shift();
+    if(!equals) misc.error(`Unexpected end of set line`,end);
     misc.typeCheck(equals,"token","=");
     //parse expression
     let exp = parseExpression(line);
