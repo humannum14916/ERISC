@@ -52,8 +52,8 @@ function backResolveCallParams(g,o,temps,call,to,){
     call.params[i] = backResolve(
       g,o,temps,call.params[i],
       {type:"word",value:
-      prefix+"__COMPILER-PARAM-"+
-      fName+"-"+g.function.filter(
+      prefix+"__COMPILER_PARAM_"+
+      fName+"_"+g.function.filter(
         p=>{return p.name == call.name.value}
       )[0].params[i].name.value}
     );
@@ -65,12 +65,12 @@ function backResolveCallParams(g,o,temps,call,to,){
     o.push({
       type:"set",dest:to,
       value:{type:"word",
-        value:"__COMPILER-RETURN-"+call.name.value
+        value:"__COMPILER_RETURN_"+call.name.value
       }
     });
   }
   return {type:"word",
-    value:"__COMPILER-RETURN-"+call.name.value
+    value:"__COMPILER_RETURN_"+call.name.value
   };
 }
 

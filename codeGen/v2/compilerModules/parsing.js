@@ -480,7 +480,7 @@ function parseStructureBlock(code){
             valType:retType,
             name:{
               type:"word",line:-1,column:-1,
-              value:"__COMPILER-RETURN-"
+              value:"__COMPILER_RETURN_"
                 +name.value
             },
             value:{
@@ -496,8 +496,8 @@ function parseStructureBlock(code){
             valType:p.type,
             name:{
               type:"word",line:-1,column:-1,
-              value:"__COMPILER-PARAM-"
-                +name.value+"-"+p.name.value
+              value:"__COMPILER_PARAM_"
+                +name.value+"_"+p.name.value
             },
             value:{
               type:"null",value:"null",

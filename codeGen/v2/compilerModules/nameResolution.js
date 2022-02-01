@@ -21,7 +21,7 @@ class Scope {
     if(this.func){
       if(name.value[name.value.length - 1] == "return"){
         name.value[name.value.length - 1] =
-          "__COMPILER-RETURN-" +
+          "__COMPILER_RETURN_" +
           this.func.name.value.split(".").pop()
       }
       if(this.func.params.filter(p=>{
@@ -29,8 +29,8 @@ class Scope {
           name.value[name.value.length -1];
       }).length != 0){
         name.value[name.value.length - 1] =
-          "__COMPILER-PARAM-" +
-          this.func.name.value.split(".").pop() + "-"+
+          "__COMPILER_PARAM_" +
+          this.func.name.value.split(".").pop() + "_"+
           this.func.params.filter(p=>{
             return p.name.value ==
               name.value[name.value.length -1];

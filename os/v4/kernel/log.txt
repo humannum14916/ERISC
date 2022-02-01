@@ -8,7 +8,7 @@ function stackless void logStr(array[char] str){
 };
 
 function stackless void logChar(char c){
-  asm "TRS Log.__COMPILER-PARAM-logChar-c,TTY";
+  asm "TRS Log.__COMPILER_PARAM_logChar_c,TTY";
 };
 
 };
