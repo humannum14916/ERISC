@@ -204,6 +204,9 @@ function finishResolution(program){
     let c = program.contents[i];
     //namespace collapse
     if(c.type == "namespace"){
+      //remove namespace
+      program.contents.splice(i,1);
+      //resolve contents
       finishResolution(c);
       program.contents = program.contents.concat(
         c.contents
