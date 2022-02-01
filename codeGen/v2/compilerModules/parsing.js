@@ -868,7 +868,7 @@ function parseCall(params){
       cur.push(p);
     }
   }
-  args.push(cur);
+  if(cur.length != 0) args.push(cur);
   //parse args
   args = args.map(parseExpression);
   //return
