@@ -11,4 +11,8 @@ function stackless void logChar(char c){
   asm "TRS Log.__COMPILER_PARAM_logChar_c,TTY";
 };
 
+function stackless void logInt(int i){
+  asm "TRS Log.__COMPILER_PARAM_logInt_i,TTY";
+};
+
 };
