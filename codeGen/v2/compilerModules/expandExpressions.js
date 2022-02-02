@@ -147,24 +147,47 @@ function backResolve(g,o,temps,exp,to,left=false){
       misc.error("Indirect struct access is not supported");
     }
     if(
-      exp.b.value.value == "length" &&
-      varType(g,exp.a.value).name.value
-        == "array"
+      exp.b.value.value == "length"
     ){
-      if(left) misc.error("Cannot use array length as set destination",exp.a.value);
-      //length
-      let length = {
-        type:"number",value:g.define
-          [exp.a.value.value].length
-      };
-      if(to){
-        o.push({
-          type:"set",dest:to,value:length
-        });
-        return to;
+      if(g.struct.findIndex(s=>{
+        return s.name == exp.a.value.value;
+      }) != -1){
+        if(left) misc.error("Cannot use struct length as set destination",exp.a.value);
+        //length
+        let length = {
+          type:"number",value:Object.keys(
+            g.struct.find(s=>{
+              return s.name == exp.a.value.value;
+            }).slots
+          ).length
+        };
+        if(to){
+          o.push({
+            type:"set",dest:to,value:length
+          });
+          return to;
+        }
+        freeTemp(temps,exp.a.value);
+        return length;
+      } else if(
+        varType(g,exp.a.value).name.value
+         == "array"
+      ){
+        if(left) misc.error("Cannot use array length as set destination",exp.a.value);
+        //length
+        let length = {
+          type:"number",value:g.define
+            [exp.a.value.value].length
+        };
+        if(to){
+          o.push({
+            type:"set",dest:to,value:length
+          });
+          return to;
+        }
+        freeTemp(temps,exp.a.value);
+        return length;
       }
-      freeTemp(temps,exp.a.value);
-      return length;
     } else {
       //struct access
       let slot = g.struct.filter(s=>{

@@ -24,7 +24,11 @@ function compile(program,root,file){
   });
   //name resolution for definitions
   //and definition collection
-  program = {contents:program};
+  program = {
+    contents:program,
+    predefine:collectType(program,"struct")
+      .map(s=>{return s.name.value})
+  };
   nameResolution.defCollect(program);
   //finish name resolution
   nameResolution.nameResolve(program);

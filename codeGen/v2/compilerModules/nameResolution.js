@@ -64,8 +64,12 @@ class Scope {
 function defCollect(program,prefix="",parent,func){
   //default parent
   if(!parent) parent = {
-    defined:n=>{return false;},
+    defined:n=>{
+      return program.predefine.indexOf(n) != -1;
+    },
     resolveS2:n=>{
+      if(program.predefine.indexOf(n.value[0]) != -1)
+        return n.value[0];
       misc.error("Name \""+n.value.join(".")+"\" not defined",n);
     },
     children:{}
