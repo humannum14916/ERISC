@@ -16,8 +16,11 @@ os:
 schematics:
   + Logisim-Evolution schematics for each CPU version
 
+tests:
+  + Automated tests for various OS versions
+
 utils:
-  + Utility scripts for emulators/toolchains
+  + Misc. programs
 
 ## Compatability
 
