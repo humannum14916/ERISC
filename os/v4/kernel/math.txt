@@ -1,0 +1,21 @@
+
+namespace Math {
+
+function stackless int mult(int a, int b){
+  define int toAdd = null;
+  define int cycles = null;
+  return = 0;
+  if(a < b){
+    toAdd = b;
+    cycles = a;
+  } else {
+    toAdd = a;
+    cycles = b;
+  };
+  while(cycles > 0){
+    return = return + toAdd;
+    cycles = cycles - 1;
+  };
+};
+
+};
