@@ -660,29 +660,29 @@ void error(string e,int historyLen){
     log(busHistory[i]);
   }
   log("");
+  ofstream dumpFile("logs/v3/ramDump");
   string memEn = memory_romEnabled?"ROM":"RAM";
-  log("Memory dump ("+memEn+"):");
+  log("Memory dumped to logs/v3/ramDump");
   string memS = "";
   int addLine = 8;
   int adr = 0;
-  int max = memory_romEnabled?256:1024;
-  log(" adr| 0/8  1/9  2/a  3/b  4/c  5/d  6/e  7/f");
-  cout << "----+---------------------------------------";
-  for(int i=0;i<max;i++){
+  int max = memory_romEnabled?256:0xffff;
+  for(int i=0;i<=max;i++){
     if(addLine == 8){
       addLine = 0;
       string s = decHex(adr);
       while(s.length() < 4) s = " "+s;
-      cout << "\n"+s+"|";
+      dumpFile << "\n"+s+"|";
       adr += 8;
     } else {
-      cout << " ";
+      dumpFile << " ";
     }
     string s = decHex(memory_read(i));
     while(s.length() < 4) s = " "+s;
-    cout << s;
+    dumpFile << s;
     addLine++;
   }
+  dumpFile.close();
   log("");
   log("Comitting null.f");
   throw new string("");
