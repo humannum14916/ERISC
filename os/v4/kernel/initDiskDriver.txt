@@ -1,0 +1,12 @@
+
+namespace InitDriver {
+
+function stackless void loadBlock(
+  int index, array[char] dest
+){
+  asm "TRS InitDriver.__COMPILER_PARAM_load_index,HD-SR";
+  asm "TRS InitDriver.__COMPILER_PARAM_load_dest,HD-DS";
+  asm "TRS 0,HD-TR";
+};
+
+};
