@@ -1,0 +1,6 @@
+;----------------;
+; Default Header ;
+;----------------;
+
+!link utils/macros.txt
+

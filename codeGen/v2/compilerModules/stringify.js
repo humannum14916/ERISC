@@ -135,6 +135,9 @@ function stringifyD(ds,structs){
             }
             chars.shift();
             a.push("@"+hex);
+          } else if(chars[0] == ","){
+            a.push("@2c");
+            chars.shift();
           } else {
             a.push("^"+chars.shift());
           }
@@ -165,28 +168,28 @@ function stringifyD(ds,structs){
       o += "DEF "+n+","+asmVal(d.value.value)+"\n";
     } else {
       //struct
-      if(
-        d.value.type != "struct" &&
-        d.value.type != "null"
-      ) misc.error("Cannot use type \""+d.value.type+"\" as struct value",d);
-      o += "LBL "+n+"\n";
-      let complete = true;
-      let t = structs.filter(s=>{
-        return s.name == d.valType.name.value;
-      })[0];
-      for(let s of Object.keys(t.slots)){
-        let v = d.value.value.filter(p=>{
-          return p.name.value == s;
-        })[0] || {value:{type:"null",value:null}};
-        if(complete){
-          o += "TRS #"+valify(v.value)+",#";
-          complete = false;
-        } else {
-          o += valify(v.value)+"\n";
-          complete = true;
+      if(d.value.type == "struct"){
+        o += "LBL "+n+"\n";
+        let complete = true;
+        let t = structs.filter(s=>{
+          return s.name == d.valType.name.value;
+        })[0];
+        for(let s of Object.keys(t.slots)){
+          let v = d.value.value.filter(p=>{
+            return p.name.value == s;
+          })[0] || {value:{type:"null",value:null}};
+          if(complete){
+            o += "TRS #"+valify(v.value)+",#";
+            complete = false;
+          } else {
+            o += valify(v.value)+"\n";
+            complete = true;
+          }
         }
-      }
-      if(!complete) o += "#0\n"
+        if(!complete) o += "#0\n"
+      } else if(d.value.type == "null"){
+        o += `DEF ${n},0`;
+      } else misc.error("Cannot use type \""+d.value.type+"\" as struct value",d);
     }
     o += "\n"
   }

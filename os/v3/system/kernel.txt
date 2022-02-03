@@ -38,7 +38,7 @@ function stackless void MAIN(){
 
   //initialise cwd
   cwd[0] = "/";
-  cwd[1] = {char}0;
+  cwd[1] = null;
 
   //print the intro message
   call printString(introMessage);
@@ -187,7 +187,7 @@ function stackless void INTERRUPT(){
 function stackless void printString(array[char] str){
   define int index = 0;
   define char curChar = null;
-  while(!(str[index] == {char}0)){
+  while(str[index] != null){
     curChar = str[index];
     asm "TRS printString.curChar,TTY";
     index = index + 1;
@@ -197,7 +197,7 @@ function stackless void printString(array[char] str){
 function stackless int evalPath(array[char] path){
   define int fsScan = kernelLength;
   define int pathScan = 1;
-  while(!(path[pathScan] == {char}0)){
+  while(path[pathScan] != null){
     //load the current directory's header
     asm "!defU LoadFromDisk 256 evalPath.fsScan miscHeader";
 
@@ -206,8 +206,7 @@ function stackless int evalPath(array[char] path){
     //loop through data blocks
     define int dataBlockScan = 1;
     while(
-      !(miscHeader[dataBlockScan] == {char}0)
-      & searching
+      miscHeader[dataBlockScan] != null & searching
     ){
       //load the data block
       define int dataBlockIndex = null;
@@ -217,8 +216,7 @@ function stackless int evalPath(array[char] path){
       //loop through children
       define int childScan = 0;
       while(
-        !(dataBlock[childScan] == {char}0)
-        & searching
+        dataBlock[childScan] != null & searching
       ){
         //load the child header
         define int childIndex = null;
@@ -227,7 +225,7 @@ function stackless int evalPath(array[char] path){
 
         //skip data block list
         define int nameScan = 1;
-        while(!(childHeader[nameScan] == {char}0)){
+        while(childHeader[nameScan] != null){
           nameScan = nameScan + 1;
         };
         nameScan = nameScan + 1;
@@ -236,18 +234,15 @@ function stackless int evalPath(array[char] path){
         define char curChar = null;
         for(
           define int i = 0;
-          !(
-            childHeader[nameScan + i] == {char}0
-          ) & (
-            childHeader[nameScan + i] ==
-            path[pathScan + i]
-          );
+          childHeader[nameScan + i] != null &
+          childHeader[nameScan + i] ==
+            path[pathScan + i];
           i = i + 1
         ){};
         if(
-          (childHeader[nameScan + i] == {char}0) &
+          (childHeader[nameScan + i] == null) &
           (
-            (path[pathScan + i] == {char}0) |
+            (path[pathScan + i] == null) |
             (path[pathScan + i] == "/")
           )
         ){
@@ -290,7 +285,7 @@ function stackless int loadFile(
   //loop over data blocks
   define int dataBlockIndex = 1;
   define int loadSource = null;
-  while(!(miscHeader[dataBlockIndex] == {char}0)){
+  while(miscHeader[dataBlockIndex] != null){
     //load the data block
     loadSource = miscHeader[dataBlockIndex];
     asm "!defU LoadFromDisk 256 loadFile.loadSource loadFile.to";
@@ -322,7 +317,7 @@ function stackless void copyString(
   array[char] from, array[char] to
 ){
   define int index = 0;
-  while(!(from[index] == {char}0)){
+  while(from[index] != null){
     to[index] = from[index];
     index = index + 1;
   };

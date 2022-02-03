@@ -1,0 +1,50 @@
+; ERISC OS v4 bootloader
+
+!link macros.txt
+
+; Spacer
+TRS #@1,#0
+
+; Load the final kernel block
+LBL finalLoad-final
+TRS 0,HD-TR
+
+; Start
+
+; Get the final kernel block index
+TRS 0,HD-SR
+TRS 256,HD-DS
+TRS 0,HD-TR
+TRS #256,ALU-A
+TRS 1,ALU-B
+TRS 0,ALU-C ; Add
+TRS ALU-O,kernEnd
+
+DEF loadTo,256
+DEF loadFrom,3
+
+LBL LoopCheck
+
+!defU Compare loadFrom kernEnd temp
+!defU cJump temp done
+
+TRS loadFrom,HD-SR
+TRS loadTo,HD-DS
+TRS 0,HD-TR
+
+TRS loadFrom,ALU-A
+TRS 1,ALU-B
+TRS 0,ALU-C ; Add
+TRS ALU-O,loadFrom
+
+TRS loadTo,ALU-A
+TRS 256,ALU-B
+TRS 0,ALU-C ; Add
+TRS ALU-O,loadTo
+
+TRS LoopCheck,PC
+
+LBL done
+TRS 2,HD-SR
+TRS 0,HD-DS
+TRS finalLoad-final,PC

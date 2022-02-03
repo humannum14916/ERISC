@@ -70,12 +70,10 @@ unsigned int busFirewall_pageSource = 0;
 bool busFirewall_active = false;
 bool busFirewall_activeInterrupt = false;
 unsigned int memory_ram[0xfe00];
-unsigned int memory_rom[0x1000];
+unsigned int memory_rom[256];
 bool memory_romEnabled = true;
 unsigned int disk_disk[25536];
-unsigned int disk_sourceH = 0;
-unsigned int disk_sourceL = 0;
-unsigned int disk_transferLen = 0;
+unsigned int disk_source = 0;
 unsigned int disk_dest = 0;
 unsigned int disk_transferScan = 0;
 bool disk_inTransfer = false;
@@ -83,7 +81,6 @@ unsigned int lcd_status = 0;
 string tty_lines[16];
 int tty_columns = 48;
 string keyboard_buffer = "";
-bool automated = false;
 
 //Bus devices
 BusReturn default_return = {false};
@@ -204,11 +201,7 @@ BusReturn lcd_readDevice(unsigned int adr){
 BusReturn lcd_writeDevice(unsigned int adr, unsigned int data){
   if(adr == 0xfff9){
     lcd_status = data;
-    if(automated){
-      log("S:"+decHex(lcd_status));
-    } else {
-      refreshDisplay();
-    }
+    refreshDisplay();
   }
   return default_return;
 }
@@ -274,9 +267,9 @@ BusReturn busFirewall_readDevice(unsigned int adr){
     }
   }
   //registers
-  if(adr == 0xfff1){
+  if(adr == 0xfff3){
     return returnBasic(busFirewall_pageLength);
-  } else if(adr == 0xfff0){
+  } else if(adr == 0xfff2){
     return returnBasic(busFirewall_pageSource);
   }
   return default_return;
@@ -302,9 +295,9 @@ BusReturn busFirewall_writeDevice(unsigned int adr, unsigned int data){
     busFirewall_setActive(!busFirewall_checkActive());
   }
   //registers
-  if(adr == 0xfff1){
+  if(adr == 0xfff3){
     busFirewall_pageLength = data;
-  } else if(adr == 0xfff0){
+  } else if(adr == 0xfff2){
     busFirewall_pageSource = data;
   }
   return default_return;
@@ -433,11 +426,7 @@ BusReturn tty_writeDevice(unsigned int adr, unsigned int data){
     //add character
     tty_lines[0] += c;
     //update display
-    if(automated){
-      log("T:"+decHex(data));
-    } else {
-      refreshDisplay();
-    }
+    refreshDisplay();
   }
   return default_return;
 }
@@ -497,28 +486,20 @@ bool keyboard_interruptStatus(){
 //Disk
 BusReturn disk_readDevice(unsigned int adr){
   if(adr == 0xfff6){
-    return returnBasic(disk_sourceH);
+    return returnBasic(disk_source);
   } else if(adr == 0xfff5){
-    return returnBasic(disk_sourceL);
-  } else if(adr == 0xfff4){
-    return returnBasic(disk_transferLen);
-  } else if(adr == 0xfff3){
     return returnBasic(disk_dest);
-  } else if(adr == 0xfff2){
+  } else if(adr == 0xfff4){
     error("Attempt to read hard drive transfer initiation adress");
   }
   return default_return;
 }
 BusReturn disk_writeDevice(unsigned int adr, unsigned int data){
   if(adr == 0xfff6){
-    disk_sourceH = data;
+    disk_source = data;
   } else if(adr == 0xfff5){
-    disk_sourceL = data;
-  } else if(adr == 0xfff4){
-    disk_transferLen = data;
-  } else if(adr == 0xfff3){
     disk_dest = data;
-  } else if(adr == 0xfff2){
+  } else if(adr == 0xfff4){
     disk_transferScan = 0;
     disk_inTransfer = true;
     memory_romEnabled = false;
@@ -528,18 +509,16 @@ BusReturn disk_writeDevice(unsigned int adr, unsigned int data){
 void disk_takeCycle(){
   //get word from disk
   unsigned int word = disk_disk[
-    disk_sourceH*0x1000
-    +disk_sourceL
-    +disk_transferScan
+    disk_source * 256 + disk_transferScan
   ];
   //write word to bus
   busWrite(
-    disk_dest+disk_transferScan,word
+    disk_dest + disk_transferScan, word
   );
   //next adress
   disk_transferScan++;
   //check for end
-  if(disk_transferScan >= disk_transferLen){
+  if(disk_transferScan >= 256){
     disk_inTransfer = false;
   }
 }
@@ -731,7 +710,7 @@ void noBusMaster(){
 
 void refreshDisplay(){
   //clear
-  if(!automated) system("clear");
+  system("clear");
   //tty
   tty_refreshDisplay();
   //lcd
@@ -741,9 +720,6 @@ void refreshDisplay(){
 //Utilites
 void log(string m){
   cout << m << endl;
-}
-void logS(string m){
-  if(!automated) log(m);
 }
 void log(unsigned int m){
   cout << m << endl;
@@ -786,13 +762,11 @@ string numToString(unsigned int n){
 
 int main(int argc, char *argv[]){
 
-  if(argc <= 1) error("No image specified");
+  if(argc == 1) error("No image specified");
 
-  if(argc == 3) automated = true;
+  log(argv[1]);
 
-  logS(argv[1]);
-
-  logS("Loading files...");
+  log("Loading files...");
   ostringstream romPath;
   romPath << argv[1];
   romPath << "/bootRom";
@@ -822,9 +796,9 @@ int main(int argc, char *argv[]){
     writeTo++;
   }
   diskFile.close();
-  logS("Files loaded");
+  log("Files loaded");
 
-  logS("Creating bus...");
+  log("Creating bus...");
   //0: CPU
   bus[0].readDevice = &default_readDevice;
   bus[0].writeDevice = &default_writeDevice;
@@ -873,9 +847,9 @@ int main(int argc, char *argv[]){
   bus[8].checkRBM = &disk_checkRBM;
   bus[8].takeCycle = &disk_takeCycle;
   //done
-  logS("Bus created");
+  log("Bus created");
 
-  logS("Starting emulation...");
+  log("Starting emulation...");
 
   //setup input
 

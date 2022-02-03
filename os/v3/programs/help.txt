@@ -42,7 +42,7 @@ function stackless void MAIN(){
 
   //loop through data blocks
   define int dataBlockIndex = 1;
-  while(!(targetHeader[dataBlockIndex] == 0)){
+  while(targetHeader[dataBlockIndex] != 0){
     //load the data block
     loadPointers->diskAdr
       = targetHeader[dataBlockIndex];

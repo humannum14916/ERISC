@@ -16,31 +16,28 @@ os:
 schematics:
   + Logisim-Evolution schematics for each CPU version
 
+tests:
+  + Automated tests for various OS versions
+
 utils:
-  + Utility scripts for emulators/toolchains
+  + Misc. programs
 
 ## Compatability
 
 Current CPU:
-  + v2cpu
+  + v3cpu
 
 Current build system:
-  + v2build
+  + v3build
 
 OS v3:
-  + Min CPU: v2
-  + Max CPU: current
-  + Min build system: v2
-  + Max build system: current
+  + CPU: v2
+  + Build system: v2
 
 OS v2:
-  + Min CPU: v2
-  + Max CPU: current
-  + Min build system: v2
-  + Max build system: current
+  + CPU: v2
+  + Build system: v2
 
 OS v1:
-  + Min CPU: v1
-  + Max CPU: v2
-  + Min build system: v1
-  + Max build system: v1
+  + CPU: v1
+  + Build system: v1

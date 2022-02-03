@@ -15,26 +15,30 @@ function compile(program,root,file){
   misc.error.path = file;
   misc.error.root = root;
   //lex
-  program = parsing.lex(program);
+  program = parsing.lex(program,root);
   //parse
   program = parsing.parseStructureBlock(program);
-  //collect components
-  let functions = collectType(program,"function");
-  let structs = collectType(program,"struct");
-  let metadata = collectType(program,"metadata");
-  let defines = collectType(program,"define");
   //branchify functions
-  functions.map(f=>{
+  collectType(program,"function").map(f=>{
     f.contents = branchify(f.contents);
   });
   //name resolution for definitions
   //and definition collection
-  program = {contents:program};
+  program = {
+    contents:program,
+    predefine:collectType(program,"struct")
+      .map(s=>{return s.name.value})
+  };
   nameResolution.defCollect(program);
   //finish name resolution
   nameResolution.nameResolve(program);
   //remove namespaces and scopes
   nameResolution.finishResolution(program);
+  //collect other components
+  let functions = collectType(program.contents,"function");
+  let structs = collectType(program.contents,"struct");
+  let metadata = collectType(program.contents,"metadata");
+  let defines = collectType(program.contents,"define");
   //determine struct layout
   structs = structResolve(structs);
   //neaten definitions
@@ -79,11 +83,7 @@ function compile(program,root,file){
     ";-------------;\n\n"+
     stringify.stringifyD(defines,structs);
   //build output
-  let output = 
-    ";----------------;\n"+
-    "; Default Header ;\n"+
-    ";----------------;\n\n"+
-    "!link utils/macros.txt\n\n";
+  let output = readFileSync(root+"headers/default");
   //userspace header
   metadata.forEach(m=>{
     if(m.key.value == "header"){

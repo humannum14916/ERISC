@@ -21,16 +21,16 @@ class Scope {
     if(this.func){
       if(name.value[name.value.length - 1] == "return"){
         name.value[name.value.length - 1] =
-          "__COMPILER-RETURN-" +
-          this.func.name.value
+          "__COMPILER_RETURN_" +
+          this.func.name.value.split(".").pop()
       }
       if(this.func.params.filter(p=>{
         return p.name.value ==
           name.value[name.value.length -1];
       }).length != 0){
         name.value[name.value.length - 1] =
-          "__COMPILER-PARAM-" +
-          this.func.name.value + "-"+
+          "__COMPILER_PARAM_" +
+          this.func.name.value.split(".").pop() + "_"+
           this.func.params.filter(p=>{
             return p.name.value ==
               name.value[name.value.length -1];
@@ -45,6 +45,11 @@ class Scope {
     if(this.values[name.value[0]]){
       //start found, return
       return this.trace()+name.value.join(".");
+    } else if(this.children[name.value[0]]){
+      //in child, pass call
+      let c = this.children[name.value[0]];
+      name.value.shift();
+      return c.resolveS2(name);
     }
     //not found, check parent
     return this.parent.resolveS2(name);
@@ -59,9 +64,13 @@ class Scope {
 function defCollect(program,prefix="",parent,func){
   //default parent
   if(!parent) parent = {
-    defined:n=>{return false;},
+    defined:n=>{
+      return program.predefine.indexOf(n) != -1;
+    },
     resolveS2:n=>{
-      misc.error("Name \""+n.value+"\" not defined",n);
+      if(program.predefine.indexOf(n.value[0]) != -1)
+        return n.value[0];
+      misc.error("Name \""+n.value.join(".")+"\" not defined",n);
     },
     children:{}
   };
@@ -195,21 +204,21 @@ function finishResolution(program){
   //remove scope
   delete program.scope;
   //loop through children
-  for(let c of program.contents){
+  for(let i = 0; i < program.contents.length; i++){
+    let c = program.contents[i];
     //namespace collapse
     if(c.type == "namespace"){
-      c.contents.forEach(sc=>{
-        finishResolution(sc);
-        program.contents.push(sc);
-      })
+      //remove namespace
+      program.contents.splice(i,1);
+      //resolve contents
+      finishResolution(c);
+      program.contents = program.contents.concat(
+        c.contents
+      );
     }
     //remove scope
     delete c.scope;
   }
-  //namespace removal
-  program.contents = program.contents.filter(c=>{
-    return c.type != "namespace";
-  });
 }
 
 //export

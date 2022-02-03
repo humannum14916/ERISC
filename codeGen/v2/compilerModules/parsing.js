@@ -1,5 +1,6 @@
 const misc = require("./misc.js");
 const convert = require("../../../utils/convert.js");
+const {readFileSync} = require("fs");
 
 //lexing
 function lex(code,root){
@@ -19,7 +20,7 @@ function lex(code,root){
           let path = code.slice(0,end);
           code = code.slice(end);
           if(linked.indexOf(path) == -1){
-            o += readFileSync(path);
+            o += readFileSync(root + path);
             linked.push(path);
           }
         }
@@ -35,6 +36,7 @@ function lex(code,root){
     }
     return o;
   })(code);
+  misc.error.file = code;
   //split into characters
   code = code.split("").map(c=>{
     return {type:"character",value:c}
@@ -247,7 +249,7 @@ function lex(code,root){
     }
     return codeO;
   })(code);
-  //recognize -> and ==
+  //recognize ->, == and !=
   code = (code=>{
     let o = [];
     for(let c of code){
@@ -271,6 +273,18 @@ function lex(code,root){
         o.push({
           type:"token",
           value:"==",
+          line:p.line,
+          column:p.column
+        });
+      } else if(
+        c.type == "token" && c.value == "=" &&
+        o[o.length - 1].type == "token" &&
+        o[o.length - 1].value == "!"
+      ){
+        let p = o.pop();
+        o.push({
+          type:"token",
+          value:"!=",
           line:p.line,
           column:p.column
         });
@@ -466,7 +480,7 @@ function parseStructureBlock(code){
             valType:retType,
             name:{
               type:"word",line:-1,column:-1,
-              value:"__COMPILER-RETURN-"
+              value:"__COMPILER_RETURN_"
                 +name.value
             },
             value:{
@@ -482,8 +496,8 @@ function parseStructureBlock(code){
             valType:p.type,
             name:{
               type:"word",line:-1,column:-1,
-              value:"__COMPILER-PARAM-"
-                +name.value+"-"+p.name.value
+              value:"__COMPILER_PARAM_"
+                +name.value+"_"+p.name.value
             },
             value:{
               type:"null",value:"null",
@@ -765,10 +779,12 @@ function parseCodeLine(line){
     o.push({type:"call",name,params});
   } else {
     line.unshift(lineTypeF);
+    let end = line[line.length - 1];
     //get dest
     let dest = parseExpression(line);
     //remove =
     let equals = line.shift();
+    if(!equals) misc.error(`Unexpected end of set line`,end);
     misc.typeCheck(equals,"token","=");
     //parse expression
     let exp = parseExpression(line);
@@ -854,7 +870,7 @@ function parseCall(params){
       cur.push(p);
     }
   }
-  args.push(cur);
+  if(cur.length != 0) args.push(cur);
   //parse args
   args = args.map(parseExpression);
   //return

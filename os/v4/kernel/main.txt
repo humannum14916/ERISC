@@ -1,0 +1,15 @@
+
+meta header kernel;
+
+
+define array[char] message
+  = "Hello from ERISC OS v4!";
+
+
+function stackless void MAIN(){
+  call Log.logStr(message);
+  while(true){};
+};
+
+
+#link kernel/log.txt

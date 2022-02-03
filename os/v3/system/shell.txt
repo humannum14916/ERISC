@@ -57,7 +57,7 @@ function stackless void printStr(
   array[char] str, int index
 ){
   define char curChar = null;
-  while(!(str[index] == null)){
+  while(str[index] != null){
     curChar = str[index];
     asm "!defU kCall 0 printStr.curChar";
     index = index + 1;

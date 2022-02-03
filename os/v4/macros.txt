@@ -1,4 +1,4 @@
-; ERISC OS v3 Macros
+; ERISC OS v4 Macros
 
 
 ; Conditional Jump (== 1)
@@ -133,16 +133,13 @@ TRS #0,PC
 
 
 ; Load something from disk
-; %0: Words to load
-; %1: Load from
-; %2: Load to
+; %0: Load from
+; %1: Load to
 !def LoadFromDisk
 
 ; Setup for transfer
-TRS 0,HD-SH
-TRS %1,HD-SL
-TRS %2,HD-WS
-TRS %0,HD-TL
+TRS %0,HD-SR
+TRS %1,HD-DS
 
 ; Store the old status
 TRS LCD,LoadFromDiskMacro-OldStatus
@@ -151,7 +148,7 @@ TRS LCD,LoadFromDiskMacro-OldStatus
 TRS 4,LCD
 
 ; Transfer
-TRS #0,HD-TRS
+TRS #0,HD-TR
 
 ; Restore old status
 TRS LoadFromDiskMacro-OldStatus,LCD

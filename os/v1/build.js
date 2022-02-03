@@ -13,5 +13,5 @@ console.error("Boot ROM assembled");
 console.error("Building filesystem...")
 fsGen(source+"/",dest+"/disk");
 console.error("Filesystem built");
-console.error("System built");
+console.error("Build complete");
 console.error("");

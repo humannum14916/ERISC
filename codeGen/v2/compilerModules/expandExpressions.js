@@ -45,12 +45,16 @@ function expand(f,g){
 
 function backResolveCallParams(g,o,temps,call,to,){
   //resolve params
+  let prefix = call.name.value.split(".");
+  let fName = prefix.pop();
+  prefix = prefix.join(".");
+  if(prefix.length != 0) prefix += ".";
   for(let i=0;i<call.params.length;i++){
     call.params[i] = backResolve(
       g,o,temps,call.params[i],
       {type:"word",value:
-      "__COMPILER-PARAM-"+
-      call.name.value+"-"+g.function.filter(
+      prefix+"__COMPILER_PARAM_"+
+      fName+"_"+g.function.filter(
         p=>{return p.name == call.name.value}
       )[0].params[i].name.value}
     );
@@ -62,12 +66,12 @@ function backResolveCallParams(g,o,temps,call,to,){
     o.push({
       type:"set",dest:to,
       value:{type:"word",
-        value:"__COMPILER-RETURN-"+call.name.value
+        value:prefix+"__COMPILER_RETURN_"+fName
       }
     });
   }
   return {type:"word",
-    value:"__COMPILER-RETURN-"+call.name.value
+    value:prefix+"__COMPILER_RETURN_"+fName
   };
 }
 
@@ -143,24 +147,47 @@ function backResolve(g,o,temps,exp,to,left=false){
       misc.error("Indirect struct access is not supported");
     }
     if(
-      exp.b.value.value == "length" &&
-      varType(g,exp.a.value).name.value
-        == "array"
+      exp.b.value.value == "length"
     ){
-      if(left) misc.error("Cannot use array length as set destination",exp.a.value);
-      //length
-      let length = {
-        type:"number",value:g.define
-          [exp.a.value.value].length
-      };
-      if(to){
-        o.push({
-          type:"set",dest:to,value:length
-        });
-        return to;
+      if(g.struct.findIndex(s=>{
+        return s.name == exp.a.value.value;
+      }) != -1){
+        if(left) misc.error("Cannot use struct length as set destination",exp.a.value);
+        //length
+        let length = {
+          type:"number",value:Object.keys(
+            g.struct.find(s=>{
+              return s.name == exp.a.value.value;
+            }).slots
+          ).length
+        };
+        if(to){
+          o.push({
+            type:"set",dest:to,value:length
+          });
+          return to;
+        }
+        freeTemp(temps,exp.a.value);
+        return length;
+      } else if(
+        varType(g,exp.a.value).name.value
+         == "array"
+      ){
+        if(left) misc.error("Cannot use array length as set destination",exp.a.value);
+        //length
+        let length = {
+          type:"number",value:g.define
+            [exp.a.value.value].length
+        };
+        if(to){
+          o.push({
+            type:"set",dest:to,value:length
+          });
+          return to;
+        }
+        freeTemp(temps,exp.a.value);
+        return length;
       }
-      freeTemp(temps,exp.a.value);
-      return length;
     } else {
       //struct access
       let slot = g.struct.filter(s=>{

@@ -1,3 +1,4 @@
+#!/usr/bin/node
 
 /*
 Commands:
@@ -38,6 +39,7 @@ while(args.length != 0){
     await exec("git",["pull"]);
     console.log("Recompiling emulators...");
     await buildEmu("emulators/v2/emulate");
+    await buildEmu("emulators/v3/emulate");
     console.log("Emulators built");
   } else if(command == "build"){
     let name = args.shift();
@@ -45,6 +47,7 @@ while(args.length != 0){
       "v1":"os/v1/build.js",
       "v2":"os/v2/build.js",
       "v3":"os/v3/build.js",
+      "v4":"os/v4/build.js",
     }[name];
     if(!buildScript) error("Unkown build name \""+name+"\"");
     call(buildScript);
@@ -52,12 +55,20 @@ while(args.length != 0){
     let emu = args.shift();
     let image = args.shift();
     emu = {
+      "v3":{command:"emulators/v3/emulate",args:[]},
       "v2":{command:"emulators/v2/emulate",args:[]},
       "v2JS":{command:"node",args:["emulators/v2/emulate.js"]},
       "v1":{command:"node",args:["emulators/v1/emulate.js"]},
     }[emu] || {command:emu,args:[]};
     emu.args.push(image);
     exec(emu.command,emu.args);
+  } else if(command == "test"){
+    let testName = args.shift();
+    let testPath = {
+      "v3":"tests/v3-min.json",
+      "v3-full":"tests/v3-full.json"
+    }[testName];
+    call("utils/runTest.js","run plz",[testPath]);
   } else {
     error("Invalid command \""+command+"\"");
   }

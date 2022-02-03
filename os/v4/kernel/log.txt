@@ -1,0 +1,18 @@
+
+namespace Log {
+  
+function stackless void logStr(array[char] str){
+  for(define int i=0;str[i] != null;i=i+1){
+    call logChar(str[i]);
+  };
+};
+
+function stackless void logChar(char c){
+  asm "TRS Log.__COMPILER_PARAM_logChar_c,TTY";
+};
+
+function stackless void logInt(int i){
+  asm "TRS Log.__COMPILER_PARAM_logInt_i,TTY";
+};
+
+};
