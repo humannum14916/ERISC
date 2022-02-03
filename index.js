@@ -61,6 +61,13 @@ while(args.length != 0){
     }[emu] || {command:emu,args:[]};
     emu.args.push(image);
     exec(emu.command,emu.args);
+  } else if(command == "test"){
+    let testName = args.shift();
+    let testPath = {
+      "v3":"tests/v3-min.json",
+      "v3-full":"tests/v3-full.json"
+    }[testName];
+    call("utils/runTest.js","run plz",[testPath]);
   } else {
     error("Invalid command \""+command+"\"");
   }
