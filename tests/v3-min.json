@@ -1,0 +1,32 @@
+{
+  "buildScript":"os/v3/build.js",
+  "image":"images/v3/",
+  "emulate":"emulators/v2/emulate",
+  "test":[
+    {"dir":"out","source":"S","data":[1]},
+    {"dir":"out","source":"T","data":"Loading kernel...\n"},
+    {"dir":"out","source":"S","data":["3","1"]},
+    {"dir":"out","source":"T","data":"Welcome to ERISC OS 3.0\nRun \"help\" for help\n\n"},
+    {"dir":"out","source":"S","data":[4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1]},
+    {"dir":"out","source":"T","data":"/ > "},
+    {"dir":"out","source":"S","data":[2]},
+    {"dir":"in","data":"ls\n"},
+    {"dir":"out","source":"T","data":"ls\n"},
+    {"dir":"out","source":"S","data":[1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1]},
+    {"dir":"out","source":"T","data":"Directory | Programs\n"},
+    {"dir":"out","source":"S","data":[4,1]},
+    {"dir":"out","source":"T","data":"Directory | Lib\n"},
+    {"dir":"out","source":"S","data":[4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1]},
+    {"dir":"out","source":"T","data":"/ > "},
+    {"dir":"out","source":"S","data":[2]},
+    {"dir":"in","data":"cat Lib/help-text\n"},
+    {"dir":"out","source":"T","data":"cat Lib/help-text\n"},
+    {"dir":"out","source":"S","data":[1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1]},
+    {"dir":"out","source":"T","data":"Commands:\n  help: Prints this message\n  ls: Lists all files in CWD and their types\n  cd _: Add /_ to CWD. If _ is . go up one directory\n  echo _: Echoes back _\n  cat _: Print the contents of file _\n  shell: The command prompt program\n  clear: Clears the sc"},
+    {"dir":"out","source":"S","data":[4,1]},
+    {"dir":"out","source":"T","data":"reen\n"},
+    {"dir":"out","source":"S","data":[4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1,4,1]},
+    {"dir":"out","source":"T","data":"/ > "},
+    {"dir":"out","source":"S","data":[2]}
+  ]
+}
