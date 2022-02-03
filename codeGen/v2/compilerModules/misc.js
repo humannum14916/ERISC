@@ -9,7 +9,8 @@ function error(m,at){
 }
 
 function formAt(at){
-  return `at ${error.root}${error.path}:${at.line}:${at.column}`;
+  let line = error.fileMap[at.line - 1];
+  return `at ${error.root}${line.file}:${line.line}:${at.column}`;
 }
 
 function typeCheck(v,e,ev){

@@ -10,6 +10,8 @@ function lex(code,root){
     let inString = false;
     let escaped = false;
     let linked = [];
+    let fileMap = [];
+    let lineNum = 1;
     while(code.length != 0){
       if(!inString){
         if(code[0] == "\""){
@@ -20,9 +22,22 @@ function lex(code,root){
           let path = code.slice(0,end);
           code = code.slice(end);
           if(linked.indexOf(path) == -1){
-            o += readFileSync(root + path);
+            let l = readFileSync(root + path).toString()+"\n";
+            fileMap = fileMap.concat(
+              l.split("").reduce((p,c)=>{
+                if(c == "\n"){
+                  p.fileMap.push({
+                    file:path,line:p.lineNum
+                  });
+                  p.lineNum++;
+                } else p.l += c;
+                return p;
+              },{fileMap:[],lineNum:1}).fileMap
+            );
+            o += l;
             linked.push(path);
           }
+          continue;
         }
       } else {
         if(code[0] == "\\"){
@@ -31,9 +46,15 @@ function lex(code,root){
           inString = false;
         }
       }
+      if(code[0] == "\n"){
+        fileMap.push({file:misc.error.path,line:lineNum});
+        lineNum++;
+      }
       o += code[0];
       code = code.slice(1);
     }
+    fileMap.push({file:misc.error.path,line:lineNum});
+    misc.error.fileMap = fileMap;
     return o;
   })(code);
   misc.error.file = code;
