@@ -420,6 +420,7 @@ function parseStructureBlock(code){
       let name = line.shift();
       misc.typeCheck(name,"word");
       //remove =
+      if(line.length == 1) misc.error("Unexpected end of line",line.shift());
       misc.typeCheck(line.shift(),"token","=");
       //get starting value
       let value = parseValue(line.shift());
