@@ -188,39 +188,38 @@ function backResolve(g,o,temps,exp,to,left=false){
         freeTemp(temps,exp.a.value);
         return length;
       }
-    } else {
-      //struct access
-      let slot = g.struct.filter(s=>{
-        return s.name == g.define
-        [exp.a.value.value]
-        .valType.name.value
-      })[0].slots[exp.b.value.value];
-      //get index
-      let index = {type:"number",value:slot.index};
-      //get destination
-      if(!to){
-        to = getTemp(
-          g,temps,slot.type
-        );
-      }
-      //left-side logic
-      if(left){
-        return {writeDest:[{
-          type:"derefNset",
-          thing:exp.a.value,index
-        }],destType:slot.type,
-        toFree:[exp.a.value]};
-      }
-      //add
-      o.push({
-        type:"dereference",
-        thing:exp.a.value,index,to
-      });
-      //free temps
-      freeTemp(exp.a.value);
-      //return
-      return {type:"word",value:to};
     }
+    //struct access
+    let slot = g.struct.filter(s=>{
+      return s.name == g.define
+      [exp.a.value.value]
+      .valType.name.value
+    })[0].slots[exp.b.value.value];
+    //get index
+    let index = {type:"number",value:slot.index};
+    //get destination
+    if(!to){
+      to = getTemp(
+        g,temps,slot.type
+      );
+    }
+    //left-side logic
+    if(left){
+      return {writeDest:[{
+        type:"derefNset",
+        thing:exp.a.value,index
+      }],destType:slot.type,
+      toFree:[exp.a.value]};
+    }
+    //add
+    o.push({
+      type:"dereference",
+      thing:exp.a.value,index,to
+    });
+    //free temps
+    freeTemp(exp.a.value);
+    //return
+    return {type:"word",value:to};
   } else {
     if(left){
       misc.error("Cannot use arithmatic result as set destination",exp.a.value);
