@@ -83,6 +83,7 @@ unsigned int lcd_status = 0;
 string tty_lines[16];
 int tty_columns = 48;
 string keyboard_buffer = "";
+bool automated = false;
 
 //Bus devices
 BusReturn default_return = {false};
@@ -203,7 +204,11 @@ BusReturn lcd_readDevice(unsigned int adr){
 BusReturn lcd_writeDevice(unsigned int adr, unsigned int data){
   if(adr == 0xfff9){
     lcd_status = data;
-    refreshDisplay();
+    if(automated){
+      log("S:"+decHex(lcd_status));
+    } else {
+      refreshDisplay();
+    }
   }
   return default_return;
 }
@@ -428,7 +433,11 @@ BusReturn tty_writeDevice(unsigned int adr, unsigned int data){
     //add character
     tty_lines[0] += c;
     //update display
-    refreshDisplay();
+    if(automated){
+      log("T:"+decHex(data));
+    } else {
+      refreshDisplay();
+    }
   }
   return default_return;
 }
@@ -722,7 +731,7 @@ void noBusMaster(){
 
 void refreshDisplay(){
   //clear
-  system("clear");
+  if(!automated) system("clear");
   //tty
   tty_refreshDisplay();
   //lcd
@@ -732,6 +741,9 @@ void refreshDisplay(){
 //Utilites
 void log(string m){
   cout << m << endl;
+}
+void logS(string m){
+  if(!automated) log(m);
 }
 void log(unsigned int m){
   cout << m << endl;
@@ -774,11 +786,13 @@ string numToString(unsigned int n){
 
 int main(int argc, char *argv[]){
 
-  if(argc == 1) error("No image specified");
+  if(argc <= 1) error("No image specified");
 
-  log(argv[1]);
+  if(argc == 3) automated = true;
 
-  log("Loading files...");
+  logS(argv[1]);
+
+  logS("Loading files...");
   ostringstream romPath;
   romPath << argv[1];
   romPath << "/bootRom";
@@ -808,9 +822,9 @@ int main(int argc, char *argv[]){
     writeTo++;
   }
   diskFile.close();
-  log("Files loaded");
+  logS("Files loaded");
 
-  log("Creating bus...");
+  logS("Creating bus...");
   //0: CPU
   bus[0].readDevice = &default_readDevice;
   bus[0].writeDevice = &default_writeDevice;
@@ -859,9 +873,9 @@ int main(int argc, char *argv[]){
   bus[8].checkRBM = &disk_checkRBM;
   bus[8].takeCycle = &disk_takeCycle;
   //done
-  log("Bus created");
+  logS("Bus created");
 
-  log("Starting emulation...");
+  logS("Starting emulation...");
 
   //setup input
 
