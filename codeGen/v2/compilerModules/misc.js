@@ -9,7 +9,7 @@ function error(m,at){
 }
 
 function formAt(at){
-  let line = error.fileMap[at.line - 1];
+  let line = error.fileMap[at.line - 1] || {file:"-",line:"-"};
   return `at ${error.root}${line.file}:${line.line}:${at.column}`;
 }
 
