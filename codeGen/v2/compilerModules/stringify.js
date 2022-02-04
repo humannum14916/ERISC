@@ -195,7 +195,7 @@ function stringifyD(ds,structs){
         o += `DEF ${n},0`;
       } else if(d.value.type == "word"){
         //equal to other
-        o += "DEF "+n+","+d.value.value;
+        o += "DEF "+n+","+d.value.value+"\n";
         continue;
       } else misc.error("Cannot use type \""+d.value.type+"\" as struct value",d);
     }
