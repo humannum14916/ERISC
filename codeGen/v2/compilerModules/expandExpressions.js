@@ -141,11 +141,10 @@ function backResolve(g,o,temps,exp,to,left=false){
     );
   } else if(exp.type == "->"){
     if(
-      exp.a.value.type != "word" ||
+      exp.b.type != "value" ||
       exp.b.value.type != "word"
     ){
-      console.error(exp);
-      misc.error("Indirect struct access is not supported");
+      misc.error("Struct property name must be a word",exp.b.value);
     }
     if(
       exp.b.value.value == "length"
@@ -190,11 +189,13 @@ function backResolve(g,o,temps,exp,to,left=false){
         return length;
       }
     }
-    //struct access
+    //back resolve a
+    let a = backResolve(g,o,temps,exp.a);
+    //get type
+    let type = compType(g,a);
+    //get slot
     let slot = g.struct.filter(s=>{
-      return s.name == g.define
-      [exp.a.value.value]
-      .valType.name.value
+      return s.name == type.name.value;
     })[0].slots[exp.b.value.value];
     //get index
     let index = {type:"number",value:slot.index};
@@ -208,18 +209,17 @@ function backResolve(g,o,temps,exp,to,left=false){
     if(left){
       return {writeDest:[{
         type:"derefNset",
-        thing:exp.a.value,index
+        thing:a,index
       }],destType:slot.type,
-      toFree:[exp.a.value]};
+      toFree:[a]};
     }
+    //free temps
+    freeTemp(temps,a);
     //add
     o.push({
       type:"dereference",
-      thing:exp.a.value,index,to
+      thing:a,index,to
     });
-    //free temps
-    freeTemp(temps,exp.a.value);
-    //return
     return to;
   } else {
     if(left){
