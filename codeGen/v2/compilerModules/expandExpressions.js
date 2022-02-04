@@ -219,7 +219,7 @@ function backResolve(g,o,temps,exp,to,left=false){
     //free temps
     freeTemp(temps,exp.a.value);
     //return
-    return {type:"word",value:to};
+    return to;
   } else {
     if(left){
       misc.error("Cannot use arithmatic result as set destination",exp.a.value);
