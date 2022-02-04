@@ -71,7 +71,8 @@ function backResolveCallParams(g,o,temps,call,to,){
     });
   }
   return {type:"word",
-    value:prefix+"__COMPILER_RETURN_"+fName
+    value:prefix+"__COMPILER_RETURN_"+fName,
+    castType:call.castType
   };
 }
 
