@@ -217,7 +217,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       thing:exp.a.value,index,to
     });
     //free temps
-    freeTemp(exp.a.value);
+    freeTemp(temps,exp.a.value);
     //return
     return {type:"word",value:to};
   } else {
