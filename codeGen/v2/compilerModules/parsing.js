@@ -587,8 +587,13 @@ function parseValue(value){
         //get slot name
         let name = value.shift();
         misc.typeCheck(name,"word");
+        //check for unexpected end
+        if(value.length == 0) misc.error(`Unexpected end of block`,name);
         //remove :
-        misc.typeCheck(value.shift(),"token",":");
+        let sep = value.shift();
+        misc.typeCheck(sep,"token",":");
+        //check for unexpected end
+        if(value.length == 0) misc.error(`Unexpected end of block`,sep);
         //get value
         let val = parseValue(value.shift());
         //remove end-of-line
