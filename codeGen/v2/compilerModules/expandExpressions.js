@@ -199,9 +199,9 @@ function backResolve(g,o,temps,exp,to,left=false){
     let index = {type:"number",value:slot.index};
     //get destination
     if(!to){
-      to = getTemp(
+      to = {type:"word",value:getTemp(
         g,temps,slot.type
-      );
+      )};
     }
     //left-side logic
     if(left){
