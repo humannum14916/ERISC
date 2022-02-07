@@ -1,0 +1,185 @@
+
+namespace Memory {
+
+
+struct heapEntry {
+  int length,
+  int owner, //0 if unallocated
+  heapEntry next,
+  heapEntry prev,
+  heapEntry nextGap,
+  heapEntry prevGap
+};
+
+define heapEntry firstGap = null;
+
+
+function stackless void init(
+  int heapMin, int heapMax
+){
+  firstGap = {heapEntry}heapMin;
+  firstGap->length =
+    (heapMax - heapMin) - heapEntry->length;
+  firstGap->next = null;
+  firstGap->prev = null;
+  firstGap->nextGap = null;
+  firstGap->prevGap = null;
+  firstGap->owner = 0;
+};
+
+function stackless int allocate(
+  int length, int owner
+){
+  //find usable entry
+  define heapEntry target = firstGap;
+  while(
+    //split required
+    target->length <
+    length + heapEntry->length
+    //perfect fill
+    | target->length == length
+  ){
+    target = target->nextGap;
+    if(target == null){
+      Errors.noMem[0] = {char}length;
+      call Log.error(Errors.noMem);
+    };
+  };
+
+  //split entry
+  if(target->length != length){
+    //get new entry address
+    define heapEntry split = null;
+    split = {heapEntry}(
+      {int}target + heapEntry->length + length
+    );
+
+    //set length
+    split->length = target->length -
+      (length + heapEntry->length);
+    
+    //splice into entries
+    split->next = target->next;
+    split->prev = target;
+    target->next = split;
+    if(split->next != null){
+      split->next->prev = split;
+    };
+
+    //replace in gap list
+    split->nextGap = target->nextGap;
+    split->prevGap = target->prevGap;
+    if(split->nextGap != null){
+      split->nextGap->prevGap = split;
+    };
+    if(split->prevGap != null){
+      split->prevGap->nextGap = split;
+    } else {
+      firstGap = split;
+    };
+  } else {
+    if(target->nextGap != null){
+      target->nextGap->prevGap = target->prevGap;
+    };
+    if(target->prevGap != null){
+      target->prevGap->nextGap = target->nextGap;
+    } else {
+      firstGap = target->nextGap;
+      if(target->nextGap == null){
+        call Log.error(Errors.memFilled);
+      };
+    };
+  };
+
+  //update length
+  target->length = length;
+
+  //update owner
+  target->owner = owner;
+
+  //return
+  return = ({int}target) + heapEntry->length;
+};
+
+function stackless void free(heapEntry all){
+  all = {heapEntry}({int}all - heapEntry->length);
+  all->owner = 0;
+
+  define int gapListUpdateRequired = true;
+
+  if(all->next != null){
+    if(all->next->owner == 0){
+      //update length
+      all->length =
+        all->length +
+        all->next->length +
+        heapEntry->length;
+      
+      //splice gap list
+      all->prevGap = all->next->prevGap;
+      all->nextGap = all->next->nextGap;
+      if(all->prevGap != null){
+        if(all->prev != all->prevGap){
+          all->prevGap->nextGap = all;
+        } else {
+          all->prevGap->nextGap = all->nextGap;
+        };
+      } else {
+        firstGap = all;
+      };
+      if(all->nextGap != null){
+        if(all->prev != all->nextGap){
+          all->nextGap->prevGap = all;
+        } else {
+          all->nextGap->prevGap = all->prevGap;
+        };
+      };
+
+      //splice entry list
+      all->next = all->next->next;
+      if(all->next != null){
+        all->next->prev = all;
+      };
+
+      //no gap list update required
+      gapListUpdateRequired = false;
+    };
+  };
+
+  if(all->prev != null){
+    if(all->prev->owner == 0){
+      //update length
+      all->prev->length = 
+        all->prev->length +
+        all->length +
+        heapEntry->length;
+      
+      //splice entry list
+      all->prev->next = all->next;
+      if(all->next != null){
+        all->next->prev = all->prev;
+      };
+
+      //no gap list update required
+      gapListUpdateRequired = false;
+    };
+  };
+
+  if(gapListUpdateRequired){
+    all->prevGap = null;
+    all->nextGap = firstGap;
+    firstGap->prevGap = all;
+    firstGap = all;
+  };
+};
+
+
+namespace Errors {
+  define array[char] noMem =
+    "x <length>: Memory full - could not allocate slot of length <length>";
+  define array[char] memFilled =
+    "Somehow, the allocatable area was perfectly filled";
+};
+
+
+};

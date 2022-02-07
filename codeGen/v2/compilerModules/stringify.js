@@ -146,6 +146,10 @@ function stringifyD(ds,structs){
         a = d.value.value.map(valify);
       } else if(d.value.type == "null"){
         //empty array
+      } else if(d.value.type == "word"){
+        //equal to other
+        o += "DEF "+n+","+d.value.value+"\n";
+        continue;
       } else {
         misc.error("Invalid array value type \""+d.value.type+"\"",d);
       }
@@ -189,6 +193,10 @@ function stringifyD(ds,structs){
         if(!complete) o += "#0\n"
       } else if(d.value.type == "null"){
         o += `DEF ${n},0`;
+      } else if(d.value.type == "word"){
+        //equal to other
+        o += "DEF "+n+","+d.value.value+"\n";
+        continue;
       } else misc.error("Cannot use type \""+d.value.type+"\" as struct value",d);
     }
     o += "\n"

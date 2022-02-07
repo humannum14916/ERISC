@@ -10,6 +10,8 @@ function lex(code,root){
     let inString = false;
     let escaped = false;
     let linked = [];
+    let fileMap = [];
+    let lineNum = 1;
     while(code.length != 0){
       if(!inString){
         if(code[0] == "\""){
@@ -20,9 +22,22 @@ function lex(code,root){
           let path = code.slice(0,end);
           code = code.slice(end);
           if(linked.indexOf(path) == -1){
-            o += readFileSync(root + path);
+            let l = readFileSync(root + path).toString()+"\n";
+            fileMap = fileMap.concat(
+              l.split("").reduce((p,c)=>{
+                if(c == "\n"){
+                  p.fileMap.push({
+                    file:path,line:p.lineNum
+                  });
+                  p.lineNum++;
+                } else p.l += c;
+                return p;
+              },{fileMap:[],lineNum:1}).fileMap
+            );
+            o += l;
             linked.push(path);
           }
+          continue;
         }
       } else {
         if(code[0] == "\\"){
@@ -31,9 +46,15 @@ function lex(code,root){
           inString = false;
         }
       }
+      if(code[0] == "\n"){
+        fileMap.push({file:misc.error.path,line:lineNum});
+        lineNum++;
+      }
       o += code[0];
       code = code.slice(1);
     }
+    fileMap.push({file:misc.error.path,line:lineNum});
+    misc.error.fileMap = fileMap;
     return o;
   })(code);
   misc.error.file = code;
@@ -420,6 +441,7 @@ function parseStructureBlock(code){
       let name = line.shift();
       misc.typeCheck(name,"word");
       //remove =
+      if(line.length == 1) misc.error("Unexpected end of line",line.shift());
       misc.typeCheck(line.shift(),"token","=");
       //get starting value
       let value = parseValue(line.shift());
@@ -565,8 +587,13 @@ function parseValue(value){
         //get slot name
         let name = value.shift();
         misc.typeCheck(name,"word");
+        //check for unexpected end
+        if(value.length == 0) misc.error(`Unexpected end of block`,name);
         //remove :
-        misc.typeCheck(value.shift(),"token",":");
+        let sep = value.shift();
+        misc.typeCheck(sep,"token",":");
+        //check for unexpected end
+        if(value.length == 0) misc.error(`Unexpected end of block`,sep);
         //get value
         let val = parseValue(value.shift());
         //remove end-of-line

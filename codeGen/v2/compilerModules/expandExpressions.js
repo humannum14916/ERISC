@@ -71,7 +71,8 @@ function backResolveCallParams(g,o,temps,call,to,){
     });
   }
   return {type:"word",
-    value:prefix+"__COMPILER_RETURN_"+fName
+    value:prefix+"__COMPILER_RETURN_"+fName,
+    castType:call.castType
   };
 }
 
@@ -140,13 +141,14 @@ function backResolve(g,o,temps,exp,to,left=false){
     );
   } else if(exp.type == "->"){
     if(
-      exp.a.value.type != "word" ||
+      exp.b.type != "value" ||
       exp.b.value.type != "word"
     ){
-      console.error(exp);
-      misc.error("Indirect struct access is not supported");
+      misc.error("Struct property name must be a word",exp.b.value);
     }
+    //special lengths
     if(
+      exp.a.type == "value" &&
       exp.b.value.value == "length"
     ){
       if(g.struct.findIndex(s=>{
@@ -188,39 +190,39 @@ function backResolve(g,o,temps,exp,to,left=false){
         freeTemp(temps,exp.a.value);
         return length;
       }
-    } else {
-      //struct access
-      let slot = g.struct.filter(s=>{
-        return s.name == g.define
-        [exp.a.value.value]
-        .valType.name.value
-      })[0].slots[exp.b.value.value];
-      //get index
-      let index = {type:"number",value:slot.index};
-      //get destination
-      if(!to){
-        to = getTemp(
-          g,temps,slot.type
-        );
-      }
-      //left-side logic
-      if(left){
-        return {writeDest:[{
-          type:"derefNset",
-          thing:exp.a.value,index
-        }],destType:slot.type,
-        toFree:[exp.a.value]};
-      }
-      //add
-      o.push({
-        type:"dereference",
-        thing:exp.a.value,index,to
-      });
-      //free temps
-      freeTemp(exp.a.value);
-      //return
-      return {type:"word",value:to};
     }
+    //back resolve a
+    let a = backResolve(g,o,temps,exp.a);
+    //get type
+    let type = compType(g,a);
+    //get slot
+    let slot = g.struct.filter(s=>{
+      return s.name == type.name.value;
+    })[0].slots[exp.b.value.value];
+    //get index
+    let index = {type:"number",value:slot.index};
+    //get destination
+    if(!to){
+      to = {type:"word",value:getTemp(
+        g,temps,exp.castType || slot.type
+      )};
+    }
+    //left-side logic
+    if(left){
+      return {writeDest:[{
+        type:"derefNset",
+        thing:a,index
+      }],destType:slot.type,
+      toFree:[a]};
+    }
+    //free temps
+    freeTemp(temps,a);
+    //add
+    o.push({
+      type:"dereference",
+      thing:a,index,to
+    });
+    return to;
   } else {
     if(left){
       misc.error("Cannot use arithmatic result as set destination",exp.a.value);

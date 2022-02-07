@@ -89,7 +89,11 @@ function defCollect(program,prefix="",parent,func){
 
 function defCollectLine(c,defs,prefix){
   //named
-  if(c.type == "define" || c.type == "function"){
+  if(
+    c.type == "define" ||
+    c.type == "function" ||
+    c.type == "namespace"
+  ){
     //check for name collisions
     let collision = defs.defined(c.name.value);
     if(collision){
