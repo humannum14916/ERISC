@@ -101,7 +101,7 @@ const {readFileSync} = require("fs");
 const {serve} = require("../../utils/ioWrap.js");
 
 serve((d,params)=>{
-  if(!params[0]) error("No build root!");
+  if(!params[0]) misc.error("No build root!");
   let o = compile(d,params[0],params[1]);
   return o;
 });
