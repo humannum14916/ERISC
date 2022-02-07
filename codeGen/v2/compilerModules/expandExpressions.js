@@ -146,7 +146,9 @@ function backResolve(g,o,temps,exp,to,left=false){
     ){
       misc.error("Struct property name must be a word",exp.b.value);
     }
+    //special lengths
     if(
+      exp.a.type == "value" &&
       exp.b.value.value == "length"
     ){
       if(g.struct.findIndex(s=>{
