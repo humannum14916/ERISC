@@ -3,7 +3,7 @@ const fs = require("fs");
 const read = fs.readFileSync;
 const write = fs.writeFileSync;
 const {serve,call} = require("../../utils/ioWrap.js");
-const {toASCII} = require("../../utils/convert.js");
+const {toASCII,decHex} = require("../../utils/convert.js");
 
 console.errorO = console.error;
 console.error = m=>{console.errorO("[FSgen] "+m)};
@@ -71,15 +71,15 @@ let reservedArea = buildContents(files.reserved,root);
 //create the disk info block
 let disk =
   //root directory index
-  [(reservedArea.length / 256) + 1]
+  [decHex((reservedArea.length / 256) + 1)]
 .concat(
   [0] //gap list head
 ).concat(
   //reserved area length
-  [reservedArea.length / 256]
+  [decHex(reservedArea.length / 256)]
 ).concat(
   //disk name
-  toASCII(files.diskName)
+  toASCII(files.diskName).map(decHex)
 ).concat(0); //terminating null
 //length check
 if(disk.length > 256)
@@ -96,7 +96,7 @@ disk = disk.concat(reservedArea);
 let diskLen = disk.length / 256;
 
 //fill in the gap list head
-disk[1] = diskLen;
+disk[1] = decHex(diskLen);
 
 //stringify the disk
 disk = disk.reduce((a,w,i)=>{
