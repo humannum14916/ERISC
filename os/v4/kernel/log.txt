@@ -7,6 +7,11 @@ function stackless void logStr(array[char] str){
   };
 };
 
+function stackless void error(array[char] msg){
+  call logStr(msg);
+  while(true){};
+};
+
 function stackless void logChar(char c){
   asm "TRS Log.__COMPILER_PARAM_logChar_c,TTY";
 };
