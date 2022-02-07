@@ -204,7 +204,7 @@ function backResolve(g,o,temps,exp,to,left=false){
     //get destination
     if(!to){
       to = {type:"word",value:getTemp(
-        g,temps,slot.type
+        g,temps,exp.castType || slot.type
       )};
     }
     //left-side logic
