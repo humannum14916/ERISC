@@ -125,7 +125,7 @@ function structResolve(structs){
     for(let s of toRes){
       //check if resolvable
       if((!s.conforms) || (o.filter(r=>{
-        return r.name.value
+        return r.name
           == s.conforms.value
       }).length != 0)){
         //move line info to base
@@ -144,7 +144,7 @@ function structResolve(structs){
         if(s.conforms){
           //get conformee
           let conformee = o.filter(r=>{
-            return r.name.value
+            return r.name
               == s.conforms.value
           })[0];
           //prepend slot info
