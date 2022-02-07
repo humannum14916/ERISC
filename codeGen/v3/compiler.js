@@ -22,12 +22,16 @@ function compile(program,root,file){
   collectType(program,"function").map(f=>{
     f.contents = branchify(f.contents);
   });
+  //determine struct layout
+  structs = structResolve(
+    collectType(program,"struct")
+  );
   //name resolution for definitions
   //and definition collection
   program = {
     contents:program,
-    predefine:collectType(program,"struct")
-      .map(s=>{return s.name.value})
+    predefine:structs
+      .map(s=>{return s.name})
   };
   nameResolution.defCollect(program);
   //finish name resolution
@@ -36,11 +40,8 @@ function compile(program,root,file){
   nameResolution.finishResolution(program);
   //collect other components
   let functions = collectType(program.contents,"function");
-  let structs = collectType(program.contents,"struct");
   let metadata = collectType(program.contents,"metadata");
   let defines = collectType(program.contents,"define");
-  //determine struct layout
-  structs = structResolve(structs);
   //neaten definitions
   defines = neaten.neatenDefine(defines);
   //code processing round one
