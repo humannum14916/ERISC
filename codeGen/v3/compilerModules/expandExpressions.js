@@ -1,79 +1,50 @@
 const misc = require("./misc.js");
 
 function expand(f,g){
-  //misc.log(`Expanding function ${f.name}...`);
   //output list
   let o = [];
   //temp bin
   let temps = {
     total:0,template:"__COMPILER_TEMP_"
-    +f.name+"_",freed:0
+    +f.name.value+"_",temps:[]
   };
   //loop through contents
   for(let c of f.contents){
     if(c.type == "set"){
-      let {to,writeDest,destType,toFree} = backResolve(
+      let dest = backResolve(
         g,o,temps,c.dest,null,true
       );
-      let f = backResolve(g,o,temps,c.exp,to);
-      toFree.forEach(t=>{freeTemp(temps,t)});
-      o = o.concat(writeDest);
-      freeTemp(temps,f);
-      let toType = typeStr(destType);
-      let fromType = typeStr(compType(g,f));
-      if(
-        toType != fromType &&
-        (toType != "null" && fromType != "null")
-      ) misc.error(`Cannot write type ${fromType} to ${toType}`,c);
-      if(!to){
-        o[o.length - 1].value = f;
+      let source = backResolve(
+        g,o,temps,c.exp,dest.varN
+      );
+      if(!compat(source.type,dest.type)){
+        misc.error(`Cannot write type ${
+          typeStr(source.type)
+        } to ${
+          typeStr(dest.type)
+        }`,c);
       }
+      o = o.concat(dest.write(source.varN));
+      freeTemp(temps,source.varN);
+      dest.temps.forEach(t=>{
+        freeTemp(temps,t);
+      });
     } else if(c.type == "branch" && c.condition){
-      c.condition = backResolve(g,o,temps,c.condition);
+      let cond = backResolve(g,o,temps,c.condition);
+      if(!compat(cond.type,{name:{value:"bool"}}))
+        misc.error("Expected type bool for branch condition, got "+typeStr(cond.type),c.condition);
+      c.condition = cond.varN;
       o.push(c);
+      freeTemp(temps,cond.varN);
     } else if(c.type == "call"){
-      backResolveCallParams(g,o,temps,c);
+      let call = backResolveCallParams(g,o,temps,c);
+      freeTemp(temps,call.varN);
     } else {
       o.push(c);
     }
   }
-  //log statistics
-  //misc.log(`Used ${temps.total} temps, ${temps.freed} reuses`);
   //return
   return o;
-}
-
-function backResolveCallParams(g,o,temps,call,to,){
-  //resolve params
-  let prefix = call.name.value.split(".");
-  let fName = prefix.pop();
-  prefix = prefix.join(".");
-  if(prefix.length != 0) prefix += ".";
-  for(let i=0;i<call.params.length;i++){
-    call.params[i] = backResolve(
-      g,o,temps,call.params[i],
-      {type:"word",value:
-      prefix+"__COMPILER_PARAM_"+
-      fName+"_"+g.function.filter(
-        p=>{return p.name == call.name.value}
-      )[0].params[i].name.value}
-    );
-  }
-  //add call
-  o.push({type:"call",name:call.name.value});
-  //move return
-  if(to){
-    o.push({
-      type:"set",dest:to,
-      value:{type:"word",
-        value:prefix+"__COMPILER_RETURN_"+fName
-      }
-    });
-  }
-  return {type:"word",
-    value:prefix+"__COMPILER_RETURN_"+fName,
-    castType:call.castType
-  };
 }
 
 function backResolve(g,o,temps,exp,to,left=false){
@@ -87,25 +58,26 @@ function backResolve(g,o,temps,exp,to,left=false){
     let index = backResolve(
       g,o,temps,exp.index
     );
-    //type of thing
-    let thingType = compType(g,thing);
     //check that the type is dereferencable
-    if(!thingType.subType)
+    if(!thing.type.subType)
       misc.error(`Type ${typeStr(thingType)} is not dereferencable`,thing);
     //left-side logic
     if(left){
-      return {writeDest:[{
-        type:"derefNset",
-        thing,index
-      }],destType:thingType.subType,
-      toFree:[thing,index]};
+      return {
+        type:thing.type.subType,
+        temps:[thing.varN,index.varN],
+        write:v=>{return [{
+          type:"derefNset",
+          thing:thing.varN,
+          index:index.varN,
+          value:v
+        }]}
+      };
     }
     //get destination
     if(!to){
-      let tempType = thingType.subType;
-      if(exp.castType) tempType = exp.castType;
       to = {type:"word",value:getTemp(
-        g,temps,tempType
+        g,temps
       )};
     }
     //free temps
@@ -114,9 +86,10 @@ function backResolve(g,o,temps,exp,to,left=false){
     //add
     o.push({
       type:"dereference",
-      thing,index,to
+      thing:thing.varN,
+      index:index.varN,to
     });
-    return to;
+    return {varN:to,type:thing.type.subType};
   } else if(exp.type == "call"){
     if(left) misc.error("Cannot use function call as set dest",exp.name.value);
     //resolve call
@@ -124,21 +97,32 @@ function backResolve(g,o,temps,exp,to,left=false){
     return backResolveCallParams(g,o,temps,exp,to);
   } else if(exp.type == "value"){
     if(left){
+      if(exp.value.type != "word")
+        misc.error(`Cannot use ${compType(g,exp.value)} as set destination`,exp.value);
       return {
-        to:exp.value,writeDest:[],
-        destType:compType(g,exp.value),
-        toFree:[]
+        varN:exp.value,
+        type:varType(g,exp.value),
+        write:()=>{return []},
+        temps:[]
       };
     }
+
+    //get destination
     if(to){
       o.push({
         type:"set",dest:to,value:exp.value
       });
-      return to;
     }
-    return Object.assign(
-      exp.value,{castType:exp.castType}
-    );
+    
+    return {
+      varN:exp.value,
+      type:compType(g,exp.value)
+    };
+  } else if(exp.type == "cast"){
+    //resolve target
+    let target = backResolve(g,o,temps,exp.target,to,left);
+    target.type = exp.toType;
+    return target;
   } else if(exp.type == "->"){
     if(
       exp.b.type != "value" ||
@@ -146,86 +130,65 @@ function backResolve(g,o,temps,exp,to,left=false){
     ){
       misc.error("Struct property name must be a word",exp.b.value);
     }
-    //special lengths
-    if(
-      exp.a.type == "value" &&
-      exp.b.value.value == "length"
-    ){
-      if(g.struct.findIndex(s=>{
-        return s.name == exp.a.value.value;
-      }) != -1){
-        if(left) misc.error("Cannot use struct length as set destination",exp.a.value);
-        //length
-        let length = {
-          type:"number",value:Object.keys(
-            g.struct.find(s=>{
-              return s.name == exp.a.value.value;
-            }).slots
-          ).length
-        };
-        if(to){
-          o.push({
-            type:"set",dest:to,value:length
-          });
-          return to;
-        }
-        freeTemp(temps,exp.a.value);
-        return length;
-      } else if(
-        varType(g,exp.a.value).name.value
-         == "array"
-      ){
-        if(left) misc.error("Cannot use array length as set destination",exp.a.value);
-        //length
-        let length = {
-          type:"number",value:g.define
-            [exp.a.value.value].length
-        };
-        if(to){
-          o.push({
-            type:"set",dest:to,value:length
-          });
-          return to;
-        }
-        freeTemp(temps,exp.a.value);
-        return length;
-      }
-    }
-    //back resolve a
-    let a = backResolve(g,o,temps,exp.a);
-    //get type
-    let type = compType(g,a);
+    
+    //back resolve struct
+    let struct = backResolve(g,o,temps,exp.a);
+
+    //get struct type
+    let sType = g.struct.filter(s=>{
+      return s.name == struct.type.name.value;
+    })[0];
+
+    if(!sType)
+      misc.error(`Type ${
+        typeStr(struct.type)
+      } is not a struct`,exp);
+
     //get slot
-    let slot = g.struct.filter(s=>{
-      return s.name == type.name.value;
-    })[0].slots[exp.b.value.value];
+    let slot = sType.slots[exp.b.value.value];
+
+    if(!slot)
+      misc.error(`Struct type ${
+        typeStr(sType)
+      } does not have property ${
+        exp.b.value.value
+      }`,exp.b.value);
+
     //get index
-    let index = {type:"number",value:slot.index};
+    let index = {
+      type:"word",
+      value:sType.name+"."
+        +exp.b.value.value
+    };
+    //left-side logic
+    if(left){
+      return {
+        type:slot.type,
+        temps:[struct.varN,index],
+        write:v=>{return [{
+          type:"derefNset",
+          thing:struct.varN,index,
+          value:v
+        }]}
+      };
+    }
     //get destination
     if(!to){
       to = {type:"word",value:getTemp(
-        g,temps,exp.castType || slot.type
+        g,temps
       )};
     }
-    //left-side logic
-    if(left){
-      return {writeDest:[{
-        type:"derefNset",
-        thing:a,index
-      }],destType:slot.type,
-      toFree:[a]};
-    }
     //free temps
-    freeTemp(temps,a);
+    freeTemp(temps,struct.varN);
     //add
     o.push({
       type:"dereference",
-      thing:a,index,to
+      thing:struct.varN,index,to
     });
-    return to;
+    return {varN:to,type:slot.type};
   } else {
     if(left){
-      misc.error("Cannot use arithmatic result as set destination",exp.a.value);
+      misc.error("Cannot use operation result as set destination",exp);
     }
     //resolve a
     let a = backResolve(
@@ -239,9 +202,9 @@ function backResolve(g,o,temps,exp,to,left=false){
       );
     }
     //get types
-    let at = typeStr(compType(g,a));
+    let at = typeStr(a.type);
     let bt;
-    if(b) bt = typeStr(compType(g,b));
+    if(b) bt = typeStr(b.type);
     //type check
     let opReq = {
       "+":{types:[["int"],["int"]],match:true},
@@ -293,21 +256,67 @@ function backResolve(g,o,temps,exp,to,left=false){
     //get destination
     if(!to){
       to = {type:"word",value:getTemp(
-        g,temps,outType
+        g,temps
       )};
     }
     //add
     o.push({
       type:"op",
       opType:exp.type,
-      a,b,to
+      a:a.varN,b:(b||{}).varN,to
     });
     //free temps
-    freeTemp(temps,a);
-    if(b) freeTemp(temps,b);
+    freeTemp(temps,a.varN);
+    if(b) freeTemp(temps,b.varN);
     //return
-    return to;
+    return {varN:to,type:outType};
   }
+}
+
+function backResolveCallParams(g,o,temps,call,to){
+  let toFree = [];
+  let f = g.function.filter(
+    p=>{return p.name.value == call.name.value}
+  )[0];
+  
+  //resolve params
+  for(let i=0;i<call.params.length;i++){
+    let param = backResolve(
+      g,o,temps,call.params[i],{
+        type:"word",
+        value:call.name.value + "."
+          + f.params[i].name.value
+      }
+    );
+    if(!compat(param.type,f.params[i].type))
+      misc.error(`Expected type ${
+        typeStr(f.params[i].type)
+      } for function param, got ${
+        typeStr(param.type)
+      }`,call.params[i]);
+    toFree.push(param.varN);
+  }
+
+  //add call
+  o.push({type:"call",name:call.name.value});
+
+  //free temps
+  toFree.forEach(tf=>{
+    freeTemp(temps,tf);
+  });
+
+  //move return
+  if(to){
+    o.push({
+      type:"set",dest:to,
+      value:{type:"word",
+        value:call.name.value+".return"
+      }
+    });
+  }
+  return {varN:{type:"word",
+    value:call.name.value+".return",
+  },type:f.retType};
 }
 
 function typeStr(t){
@@ -318,48 +327,31 @@ function typeStr(t){
   return o;
 }
 
-function getTemp(g,temps,typeR){
-  //get type string
-  let type = typeStr(typeR);
-  //ensure temp bin
-  if(!temps[type]) temps[type] = [];
+function getTemp(g,temps){
   //check for temp
-  if(temps[type].length == 0){
+  if(temps.temps.length == 0){
     //create new temp
-    temps[type].push(
-      temps.template+type+"_"+temps.total
+    temps.temps.push(
+      temps.template+temps.total
     );
     temps.total++;
     //add temp definition
-    g.define[temps[type][temps[type].length-1]] = {
-      valType:typeR,
+    g.define[temps.temps[temps.temps.length-1]] = {
+      valType:{name:"any"},
       value:{type:"null",value:null}
     };
   }
-  //get temp
-  let temp = temps[type].shift();
   //return temp
-  return temp;
+  return temps.temps.shift();
 }
 
 function freeTemp(temps,v){
   if(
     v.type == "word" &&
-    v.value.indexOf("__COMPILER_TEMP_") == 0){
-      let type = v.value.split("_");
-      type = type[type.length - 2];
-      temps[type].push(v.value);
-      temps.freed++;
-    }
-}
-
-function toType(t){
-  if(t == "number"){
-    return {name:"int",subType:null};
-  } else if(t == "null"){
-    return {name:"null",subType:null};
-  } else {
-    misc.error("Compound type constants in expressions are not supported, had type "+t)
+    v.value.indexOf("__COMPILER_TEMP_") == 0)
+  {
+    temps.temps.push(v.value);
+    temps.freed++;
   }
 }
 
@@ -369,13 +361,20 @@ function varType(g,varN){
 
 function compType(g,c){
   if(c.castType) return c.castType;
-  if(c.type == "number") return {name:{type:"word",value:"int"}};
-  if(c.type == "null") return {name:{type:"word",value:"null"}};
+  if(c.type == "number") return {name:{value:"int"}};
+  if(c.type == "null") return {name:{value:"null"}};
   if(c.type == "word") return varType(g,c);
+  if(c.type == "bool") return {name:{value:"bool"}};
   if(c.type == "string"){
     if(c.value.length != 1) misc.error(`Character strings must be length 1, got "${c.value}"`,c);
     return {name:{type:"word",value:"char"}};
   }
+}
+
+function compat(a,b){
+  return typeStr(a) == typeStr(b) ||
+    a.name.value == "null" ||
+    b.name.value == "null";
 }
 
 //export
