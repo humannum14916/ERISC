@@ -165,7 +165,7 @@ function stringifyD(ds,structs){
           ",#"+asmVal(a.shift())+"\n";
       }
     } else if(
-      ["char","int","null","number","bool"]
+      ["char","int","null","number","bool","any"]
       .indexOf(d.valType.name.value) != -1
     ){
       //simple type
