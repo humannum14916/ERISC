@@ -141,6 +141,8 @@ function snapOp(exp,op){
     ){
       let a = o.pop();
       let b = exp.shift();
+      if(!a) misc.error(`Operator ${op} has no right operand`,c.value);
+      if(!b) misc.error(`Operator ${op} has no left operand`,c.value);
       if(op == "!="){
         o.push({type:"!",a:{
           type:"==",a,b,
