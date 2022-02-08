@@ -57,6 +57,23 @@ function compile(program,root,file){
   let functions = collectType(program,"function");
   let metadata = collectType(program,"metadata");
   let defines = collectType(program,"define");
+  //add struct type definitions
+  defines = defines.concat(structs.map(st=>{
+    return [{
+      valType:{name:{value:"int"}},
+      name:{value:st.name+".length"},
+      value:{type:"number",value:st.length}
+    }].concat(Object.keys(st.slots).map(sn=>{
+      return [{
+        valType:{name:{value:"int"}},
+        name:{value:st.name+"."+sn},
+        value:{
+          type:"number",
+          value:st.slots[sn].length
+        }
+      }];
+    }).flat());
+  }).flat());
   //neaten definitions
   defines = neatenDefine(defines);
   //handle local definitions
