@@ -386,9 +386,11 @@ function parseStructureBlock(code){
       //get key
       let key = line.shift();
       misc.typeCheck(key,"word");
+      delete key.type;
       //get value
       let value = line.shift();
       misc.typeCheck(value,"word");
+      delete value.type;
       //return
       o.push({
         type:"metadata",key,value
@@ -397,6 +399,7 @@ function parseStructureBlock(code){
       //get name
       let name = line.shift();
       misc.typeCheck(name,"word");
+      delete name.type;
       //get contents / conforms
       let contents = line.shift();
       let conforms;
@@ -407,6 +410,7 @@ function parseStructureBlock(code){
         //that's not contents, that's conforms!
         conforms = line.shift();
         misc.typeCheck(conforms,"word");
+        delete conforms.type;
         contents = line.shift();
       }
       misc.typeCheck(contents,"enclose");
@@ -421,6 +425,7 @@ function parseStructureBlock(code){
         //get name
         let name = contents.shift();
         misc.typeCheck(name,"word");
+        delete name.type;
         //remove end-of-line token
         if(contents.length != 0){
           misc.typeCheck(contents.shift(),"token",",");
@@ -466,6 +471,7 @@ function parseStructureBlock(code){
       //get name
       let name = line.shift();
       misc.typeCheck(name,"word");
+      delete name.type;
       //get parameters
       let paramsR = line.shift();
       misc.typeCheck(paramsR,"enclose");
@@ -480,6 +486,7 @@ function parseStructureBlock(code){
         //get name
         let name = paramsR.shift();
         misc.typeCheck(name,"word");
+        delete name.type;
         //remove end-of-line
         if(paramsR.length != 0){
           misc.typeCheck(paramsR.shift(),"token",",");
@@ -537,6 +544,7 @@ function parseStructureBlock(code){
       //get name
       let name = line.shift();
       misc.typeCheck(name,"word");
+      delete name.type;
       //get contents
       let contents = line.shift();
       misc.typeCheck(contents,"enclose");
@@ -560,6 +568,7 @@ function parseType(line){
   //get name
   let name = line.shift();
   misc.typeCheck(name,"word");
+  delete name.type;
   //arrays
   let subType;
   if(name.value == "array"){
@@ -694,6 +703,7 @@ function parseCodeLine(line){
     //get string
     let str = line.shift();
     misc.typeCheck(str,"string");
+    delete str.type;
     //return
     o.push({type:"asm",value:str});
   } else if(lineType == "define"){
@@ -705,6 +715,7 @@ function parseCodeLine(line){
     let name = line.shift();
     misc.typeCheck(name,"word");
     //remove =
+    if(line.length == 1) misc.error("Unexpected end of line",line.shift());
     misc.typeCheck(line.shift(),"token","=");
     //get starting value
     let value = parseValue(line.shift());
@@ -797,6 +808,7 @@ function parseCodeLine(line){
     //get name
     let name = line.shift();
     misc.typeCheck(name,"word");
+    delete name.type;
     //get params
     let params = line.shift();
     misc.typeCheck(params,"enclose");
@@ -881,7 +893,7 @@ function parseExpression(line){
       (line[0].type == "token" && line[0].value == "=")
     ) break;
   }
-  //determine precidence
+  //return
   return o;
 }
 
