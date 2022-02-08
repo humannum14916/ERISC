@@ -123,9 +123,17 @@ function snapOp(exp,op){
       let a = o.pop();
       let b = exp.shift();
       if(op == "!="){
-        o.push({type:"!",a:{type:"==",a,b}});
+        o.push({type:"!",a:{
+          type:"==",a,b,
+          line:c.value.line,
+          column:c.value.column
+        }});
       } else {
-        o.push({type:op,a,b});
+        o.push({
+          type:op,a,b,
+          line:c.value.line,
+          column:c.value.column
+        });
       }
     } else {
       o.push(c);
