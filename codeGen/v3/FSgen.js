@@ -34,7 +34,7 @@ function buildContents(file,root){
   } else if(file.type == "cl"){
     console.error(`Compiling ${file.source}...`);
     let compiled = call(
-      "codeGen/v2/compiler.js",
+      "codeGen/v3/compiler.js",
       read(root+file.source),[root,file.source]
     );
     console.error(`Assembling ${file.source}...`);

@@ -3,7 +3,7 @@ namespace Memory {
 
 
 struct heapEntry {
-  int length,
+  int len,
   int owner, //0 if unallocated
   heapEntry next,
   heapEntry prev,
@@ -18,8 +18,8 @@ function stackless void init(
   int heapMin, int heapMax
 ){
   firstGap = {heapEntry}heapMin;
-  firstGap->length =
-    (heapMax - heapMin) - heapEntry->length;
+  firstGap->len =
+    (heapMax - heapMin) - heapEntry.length;
   firstGap->next = null;
   firstGap->prev = null;
   firstGap->nextGap = null;
@@ -34,10 +34,10 @@ function stackless int allocate(
   define heapEntry target = firstGap;
   while(
     //split required
-    target->length <
-    length + heapEntry->length
+    target->len <
+    length + heapEntry.length
     //perfect fill
-    | target->length == length
+    | target->len == length
   ){
     target = target->nextGap;
     if(target == null){
@@ -47,16 +47,16 @@ function stackless int allocate(
   };
 
   //split entry
-  if(target->length != length){
+  if(target->len != length){
     //get new entry address
     define heapEntry split = null;
     split = {heapEntry}(
-      {int}target + heapEntry->length + length
+      {int}target + heapEntry.length + length
     );
 
     //set length
-    split->length = target->length -
-      (length + heapEntry->length);
+    split->len = target->len -
+      (length + heapEntry.length);
     
     //splice into entries
     split->next = target->next;
@@ -92,28 +92,28 @@ function stackless int allocate(
   };
 
   //update length
-  target->length = length;
+  target->len = length;
 
   //update owner
   target->owner = owner;
 
   //return
-  return = ({int}target) + heapEntry->length;
+  return = ({int}target) + heapEntry.length;
 };
 
 function stackless void free(heapEntry all){
-  all = {heapEntry}({int}all - heapEntry->length);
+  all = {heapEntry}({int}all - heapEntry.length);
   all->owner = 0;
 
-  define int gapListUpdateRequired = true;
+  define bool gapListUpdateRequired = true;
 
   if(all->next != null){
     if(all->next->owner == 0){
       //update length
-      all->length =
-        all->length +
-        all->next->length +
-        heapEntry->length;
+      all->len =
+        all->len +
+        all->next->len +
+        heapEntry.length;
       
       //splice gap list
       all->prevGap = all->next->prevGap;
@@ -149,10 +149,10 @@ function stackless void free(heapEntry all){
   if(all->prev != null){
     if(all->prev->owner == 0){
       //update length
-      all->prev->length = 
-        all->prev->length +
-        all->length +
-        heapEntry->length;
+      all->prev->len = 
+        all->prev->len +
+        all->len +
+        heapEntry.length;
       
       //splice entry list
       all->prev->next = all->next;

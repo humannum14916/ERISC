@@ -1,8 +1,5 @@
 #ignore compiled C++ emulators
 emulators/*/emulate
 
-#the .replit file
-.replit
-
 #and debug logs
 logs/**
