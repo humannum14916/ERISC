@@ -511,13 +511,14 @@ function parseStructureBlock(code){
             type:"define",
             valType:retType,
             name:{
-              type:"word",line:-1,column:-1,
-              value:"__COMPILER_RETURN_"
-                +name.value
+              line:retType.name.line,
+              column:retType.name.column,
+              value:name.value+".return"
             },
             value:{
               type:"null",value:"null",
-              line:-1,column:-1
+              line:retType.name.line,
+              column:retType.name.column
             }
           });
         }
@@ -527,13 +528,14 @@ function parseStructureBlock(code){
             type:"define",
             valType:p.type,
             name:{
-              type:"word",line:-1,column:-1,
-              value:"__COMPILER_PARAM_"
-                +name.value+"_"+p.name.value
+              line:retType.name.line,
+              column:retType.name.column,
+              value:name.value+"."+p.name.value
             },
             value:{
               type:"null",value:"null",
-              line:-1,column:-1
+              line:retType.name.line,
+              column:retType.name.column
             }
           });
         }
