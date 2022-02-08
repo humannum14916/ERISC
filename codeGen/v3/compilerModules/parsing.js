@@ -663,10 +663,10 @@ function parseValue(value){
     } else if(value.value == "null"){
       value.type = "null";
     } else if(value.value == "false"){
-      value.type = "number";
+      value.type = "bool";
       value.value = 0;
     } else if(value.value == "true"){
-      value.type = "number";
+      value.type = "bool";
       value.value = 1;
     }
   }
