@@ -1,93 +1,14 @@
 const misc = require("./misc.js");
 
-//scopes
-class Scope {
-  constructor(parent,name,func){
-    this.values = {};
-    this.parent = parent;
-    this.children = {};
-    this.name = name;
-    this.parent.children[this.name] = this;
-    this.func = func;
-  }
-  defined(name){
-    if(this.values[name]) return this.values[name];
-    return this.parent.defined(name);
-  }
-  resolve(name){
-    //split at .s
-    name.value = name.value.split(".");
-    //check for param / return
-    if(this.func){
-      if(name.value[name.value.length - 1] == "return"){
-        name.value[name.value.length - 1] =
-          "__COMPILER_RETURN_" +
-          this.func.name.value.split(".").pop()
-      }
-      if(this.func.params.filter(p=>{
-        return p.name.value ==
-          name.value[name.value.length -1];
-      }).length != 0){
-        name.value[name.value.length - 1] =
-          "__COMPILER_PARAM_" +
-          this.func.name.value.split(".").pop() + "_"+
-          this.func.params.filter(p=>{
-            return p.name.value ==
-              name.value[name.value.length -1];
-          })[0].name.value;
-      }
-    }
-    //go up to first name
-    return this.resolveS2(name);
-  }
-  resolveS2(name){
-    //check self
-    if(this.values[name.value[0]]){
-      //start found, return
-      return this.trace()+name.value.join(".");
-    } else if(this.children[name.value[0]]){
-      //in child, pass call
-      let c = this.children[name.value[0]];
-      name.value.shift();
-      return c.resolveS2(name);
-    }
-    //not found, check parent
-    return this.parent.resolveS2(name);
-  }
-  trace(name){
-    if(this.name == "") return "";
-    return this.parent.trace() + this.name + ".";
-  }
-}
-
 //definition collection
-function defCollect(program,prefix="",parent,func){
-  //default parent
-  if(!parent) parent = {
-    defined:n=>{
-      return program.predefine.indexOf(n) != -1;
-    },
-    resolveS2:n=>{
-      if(program.predefine.indexOf(n.value[0]) != -1)
-        return n.value[0];
-      misc.error("Name \""+n.value.join(".")+"\" not defined",n);
-    },
-    children:{}
-  };
-  //definitions
-  let defs = new Scope(parent,
-    prefix.split(".")[prefix.split(".").length-2] || "",
-    func
-  );
+function defCollect(names,parent){
   //loop through block
-  for(let c of program.contents){
-    defCollectLine(c,defs,prefix);
+  for(let c of parent.contents){
+    defCollectLine(c,names,parent);
   }
-  //store scope
-  program.scope = defs;
 }
 
-function defCollectLine(c,defs,prefix){
+function defCollectLine(c,names,parent){
   //named
   if(
     c.type == "define" ||
@@ -95,85 +16,94 @@ function defCollectLine(c,defs,prefix){
     c.type == "namespace"
   ){
     //check for name collisions
-    let collision = defs.defined(c.name.value);
-    if(collision){
-      misc.error("Name collision over "+collision.name.value+", defined "+misc.formAt(collision.name),c.name);
+    if(names.find(
+      o=>{return o.value == c.name.value}
+    )){
+      misc.error(`Name collision over ${
+        c.name.value
+      }, defined ${
+        misc.formAt(names.filter(o=>{
+          return o.value == c.name.value
+        })[0])
+      }`,c.name);
     }
     //prefix name
-    let nameBase = c.name.value;
-    c.name.value = prefix + nameBase;
+    if(parent.name){
+      c.name.value = parent.name.value
+        + "." + c.name.value;
+    }
     //define name
-    defs.values[nameBase] = c;
+    names.push(c.name);
   }
   //containing
   if(c.type == "namespace" || c.type == "function"){
     //check contents
-    defCollect(c,c.name.value+".",defs,(
-      c.type == "function"
-    )?c:null);
+    defCollect(names,c);
   }
 }
 
 //name resolution
-function nameResolve(program){
-  //loop through program
-  for(let c of program.contents){
-    nameResolveLine(c,program.scope);
+function nameResolve(parent,names){
+  //loop through parent
+  for(let c of parent.contents){
+    nameResolveLine(c,parent,names);
   }
 }
 
-function nameResolveLine(c,scope){
+function nameResolveLine(c,parent,names){
   //resolve contents
   if(c.type == "namespace" || c.type == "function"){
     //resolve contents
-    nameResolve(c);
+    nameResolve(c,names);
   }
   //resolve rest
   if(c.type == "set"){
     //resolve dest
-    nameResolveExpression(c.dest,scope);
+    nameResolveExpression(c.dest,parent,names);
     //resolve source
-    nameResolveExpression(c.exp,scope);
+    nameResolveExpression(c.exp,parent,names);
   } else if(c.type == "define"){
     //resolve starting value
-    nameResolveValue(c.value,scope);
+    nameResolveValue(c.value,parent,names);
   } else if(c.type == "branch"){
     //resolve condition
-    if(c.condition) nameResolveExpression(c.condition,scope);
+    if(c.condition) nameResolveExpression(
+      c.condition,parent,names
+    );
     //update dest
-    c.to = "__COMPILER_LABLE_"+scope.func.name.value+"_"+c.to;
+    c.to = "__COMPILER_LABLE_"+parent.name.value+"_"+c.to;
   } else if(c.type == "call"){
     //resolve name
-    c.name.value = scope.resolve(c.name);
+    c.name.value = resolveName(c.name,parent,names);
     //resolve params
     c.params.forEach(p=>{
-      nameResolveExpression(p,scope);
+      nameResolveExpression(p,parent,names);
     });
   } else if(c.type == "lable"){
     //update name
-    c.value = "__COMPILER_LABLE_"+scope.func.name.value+"_"+c.value;
+    c.value = "__COMPILER_LABLE_"+parent.name.value+"_"+c.value;
   }
 }
 
-function nameResolveValue(v,scope){
+function nameResolveValue(v,parent,names){
   if(v.type == "word"){
     //resolve
-    v.value = scope.resolve(v);
+    v.value = resolveName(v,parent,names);
   } else if(v.type == "array"){
     //resolve contents
     for(let c of v.value){
-      nameResolveValue(c,scope);
+      nameResolveValue(c,parent,names);
     }
   } else if(v.type == "struct"){
     //resolve contents
     for(let c of v.value){
-      nameResolveValue(c.value,scope);
+      nameResolveValue(c.value,parent,names);
     }
   }
   return v;
 }
 
-function nameResolveExpression(e,scope){
+function nameResolveExpression(e,parent,names){
   let skip = false;
   for(let c of e){
     if(skip){
@@ -187,42 +117,60 @@ function nameResolveExpression(e,scope){
       continue;
     } if(c.type == "value"){
       //resolve value
-      nameResolveValue(c.value,scope);
+      nameResolveValue(c.value,parent,names);
     } else if(c.type == "call"){
       //resolve params
       c.params.forEach(p=>{
-        nameResolveExpression(p,scope);
+        nameResolveExpression(p,parent,names);
       });
     } else if(c.type == "access"){
       //resolve index
-      nameResolveExpression(c.index,scope);
+      nameResolveExpression(c.index,parent,names);
     } else if(c.type == "parenthesis"){
       //resolve contents
-      nameResolveExpression(c.contents,scope);
+      nameResolveExpression(c.contents,parent,names);
     }
+  }
+}
+
+function resolveName(name,parent,names){
+  let base = parent.name.value;
+  while(true){
+    //setup base
+    if(base) base += ".";
+
+    if(names.find(o=>{
+      return o.value == base + name.value;
+    })){
+      return base + name.value;
+    }
+
+    //update base
+    if(base == "")
+      misc.error(`Name ${name.value} not defined`,name);
+    base = base.split(".");
+    base = base.slice(0,base.length - 2);
+    base = base.join(".");
   }
 }
 
 //polishing
 function finishResolution(program){
-  //remove scope
-  delete program.scope;
+  let out = [];
   //loop through children
   for(let i = 0; i < program.contents.length; i++){
     let c = program.contents[i];
     //namespace collapse
     if(c.type == "namespace"){
-      //remove namespace
-      program.contents.splice(i,1);
       //resolve contents
-      finishResolution(c);
-      program.contents = program.contents.concat(
-        c.contents
-      );
+      out = out.concat(finishResolution(c));
+    } else {
+      //add to output
+      out.push(c);
     }
-    //remove scope
-    delete c.scope;
   }
+  //return
+  return out;
 }
 
 //export

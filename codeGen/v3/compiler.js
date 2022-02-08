@@ -28,29 +28,31 @@ function compile(program,root,file){
   );
   //name resolution for definitions
   //and definition collection
-  program = {
-    contents:program,
-    predefine:structs
-      .map(s=>{
-        return [{
-          value:s.name + ".length",
-          line:s.line,column:s.column
-        }].concat(Object.keys(s.slots).map(
-          sn => {
-            return {
-              value:s.name+"."+sn,
-              line:s.slots[sn].type.name.line,
-              column:s.slots[sn].type.name.column
-            };
-          }
-        ));
-      }).flat()
-  };
-  nameResolution.defCollect(program);
+  let names = structs.map(s=>{
+    return [{
+      value:s.name + ".length",
+      line:s.line,column:s.column
+    }].concat(Object.keys(s.slots).map(
+      sn => {
+        return {
+          value:s.name+"."+sn,
+          line:s.slots[sn].type.name.line,
+          column:s.slots[sn].type.name.column
+        };
+      }
+    ));
+  }).flat();
+  nameResolution.defCollect(names,{
+    contents:program
+  });
   //finish name resolution
-  nameResolution.nameResolve(program);
+  nameResolution.nameResolve(
+    {contents:program},names,{name:{value:""}}
+  );
   //remove namespaces and scopes
-  nameResolution.finishResolution(program);
+  program = nameResolution.finishResolution(
+    {contents:program}
+  );
   //collect other components
   let functions = collectType(program.contents,"function");
   let metadata = collectType(program.contents,"metadata");
