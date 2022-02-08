@@ -22,7 +22,7 @@ function stringifyF(f){
     //
   } else {
     //function definition
-    o += "!defU defF "+f.name+"\n\n";
+    o += "!defU defF "+f.name.value+"\n\n";
     //contents
     for(let c of f.contents){
       if(c.type == "asm"){
@@ -93,7 +93,7 @@ function stringifyF(f){
       o += "\n\n";
     }
     //definition termination
-    o += "!defU retF "+f.name;
+    o += "!defU retF "+f.name.value;
   }
   return o;
 }
