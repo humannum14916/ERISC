@@ -4,10 +4,10 @@ const parsing = require("./compilerModules/parsing.js");
 const nameResolution = require("./compilerModules/nameResolution.js");
 const decomposeExpressions = require("./compilerModules/decomposeExpressions.js");
 const expandExprs = require("./compilerModules/expandExpressions");
-const neaten = require("./compilerModules/neaten.js");
 const stringify = require("./compilerModules/stringify.js");
 const {
-  collectType,branchify,structResolve,extractLDefs
+  collectType,branchify,structResolve,
+  extractLDefs,neatenDefine
 } = require("./compilerModules/assorted.js");
 
 function compile(program,root,file){
@@ -58,7 +58,7 @@ function compile(program,root,file){
   let metadata = collectType(program,"metadata");
   let defines = collectType(program,"define");
   //neaten definitions
-  defines = neaten.neatenDefine(defines);
+  defines = neatenDefine(defines);
   //handle local definitions
   for(let f of functions){
     //extract local definitions
@@ -67,7 +67,7 @@ function compile(program,root,file){
     if(f.stackless){
       //add to global definitions
       defines = Object.assign(defines,
-        neaten.neatenDefine(lDefs)
+        neatenDefine(lDefs)
       );
     } else {
       //stack functions are not done yet
@@ -76,8 +76,6 @@ function compile(program,root,file){
   }
   //decompose expressions
   decomposeExpressions.decomposeExpressions(functions);
-  //neaten functions
-  neaten.neatenFunction(functions);
   //expand expressions
   for(let f of functions){
     f.contents = expandExprs.expand(f,{define:defines,struct:structs,function:functions});
