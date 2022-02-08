@@ -54,22 +54,21 @@ function compile(program,root,file){
     {contents:program}
   );
   //collect other components
-  let functions = collectType(program.contents,"function");
-  let metadata = collectType(program.contents,"metadata");
-  let defines = collectType(program.contents,"define");
+  let functions = collectType(program,"function");
+  let metadata = collectType(program,"metadata");
+  let defines = collectType(program,"define");
   //neaten definitions
   defines = neaten.neatenDefine(defines);
-  //code processing round one
+  //handle local definitions
   for(let f of functions){
     //extract local definitions
-    f.defines = extractLDefs(f.contents);
+    let lDefs = extractLDefs(f.contents);
     //handle defenitions
     if(f.stackless){
       //add to global definitions
       defines = Object.assign(defines,
-        neaten.neatenDefine(f.defines)
+        neaten.neatenDefine(lDefs)
       );
-      delete f.defines;
     } else {
       //stack functions are not done yet
       null.f;
@@ -79,9 +78,8 @@ function compile(program,root,file){
   decomposeExpressions.decomposeExpressions(functions);
   //neaten functions
   neaten.neatenFunction(functions);
-  //code processing round two
+  //expand expressions
   for(let f of functions){
-    //expand expressions
     f.contents = expandExprs.expand(f,{define:defines,struct:structs,function:functions});
   }
   //stringify functions
