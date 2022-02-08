@@ -32,11 +32,16 @@ function compile(program,root,file){
     contents:program,
     predefine:structs
       .map(s=>{
-        return [
-          s.name + ".length"
-        ].concat(Object.keys(s.slots).map(
+        return [{
+          value:s.name + ".length",
+          line:s.line,column:s.column
+        }].concat(Object.keys(s.slots).map(
           sn => {
-            return s.name+"."+sn
+            return {
+              value:s.name+"."+sn,
+              line:s.slots[sn].type.name.line,
+              column:s.slots[sn].type.name.column
+            };
           }
         ));
       }).flat()
