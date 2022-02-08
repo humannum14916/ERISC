@@ -426,6 +426,9 @@ function parseStructureBlock(code){
         let name = contents.shift();
         misc.typeCheck(name,"word");
         delete name.type;
+        if(name.value == "length"){
+          misc.error(`Cannot name a struct property "length"`,name);
+        }
         //remove end-of-line token
         if(contents.length != 0){
           misc.typeCheck(contents.shift(),"token",",");
