@@ -31,7 +31,15 @@ function compile(program,root,file){
   program = {
     contents:program,
     predefine:structs
-      .map(s=>{return s.name})
+      .map(s=>{
+        return [
+          s.name + ".length"
+        ].concat(Object.keys(s.slots).map(
+          sn => {
+            return s.name+"."+sn
+          }
+        ));
+      }).flat()
   };
   nameResolution.defCollect(program);
   //finish name resolution
