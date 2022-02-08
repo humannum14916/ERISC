@@ -42,7 +42,11 @@ function dExpression(e){
         //decompose params
         let params = dCall(c.params);
         //add back to expression
-        o.push({type:"call",name,params});
+        o.push({
+          type:"call",name,params,
+          line:c.line,
+          column:c.column
+        });
       } else if(c.type == "access"){
         //get thing
         let thing = o.pop();
@@ -52,7 +56,11 @@ function dExpression(e){
         //decompose index
         let index = dExpression(c.index);
         //add back to expression
-        o.push({type:"access",thing,index});
+        o.push({
+          type:"access",thing,index,
+          line:c.line,
+          column:c.column
+        });
       } else if(c.type == "parenthesis"){
         //parenthesis
         o.push(dExpression(c.contents));
@@ -74,21 +82,32 @@ function dExpression(e){
         //decompose value
         val = dExpression([val]);
         //add
-        o.push({type:"~",a:val});
+        o.push({
+          type:"~",a:val,
+          line:cur.line,
+          column:cur.column
+        });
       } else if(cur.type == "operator" && cur.value.value == "!"){
         //get value to invert
         let val = e.shift();
         if(!val) misc.error("Cannot end and expression with !",cur);
         //add
-        o.push({type:"!",a:val});
+        o.push({
+          type:"!",a:val,
+          line:cur.line,
+          column:cur.column
+        });
       } else if(cur.type == "cast"){
         //get target
         let target = e.shift();
         if(!target) misc.error("Cannot start an expression with a cast");
-        //add cast info
-        target.castType = cur.toType;
-        //add back to expression
-        o.push(target);
+        //add
+        o.push({
+          type:"cast",target,
+          toType:cur.toType,
+          line:cur.toType.name.line,
+          column:cur.toType.name.column
+        });
       } else {
         o.push(cur);
       }
