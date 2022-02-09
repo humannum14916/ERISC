@@ -504,42 +504,40 @@ function parseStructureBlock(code){
       misc.typeCheck(contents,"enclose");
       contents = parseCodeBlock(contents.contents);
       //parameter and return variable definition
-      if(stackless){
-        //return variable
-        if(retType.name.value != "void"){
-          o.push({
-            type:"define",
-            valType:retType,
-            name:{
-              line:retType.name.line,
-              column:retType.name.column,
-              value:name.value+".return"
-            },
-            value:{
-              type:"null",value:"null",
-              line:retType.name.line,
-              column:retType.name.column
-            }
-          });
-        }
-        //parameters
-        for(let p of params){
-          o.push({
-            type:"define",
-            valType:p.type,
-            name:{
-              line:retType.name.line,
-              column:retType.name.column,
-              value:name.value+"."+p.name.value
-            },
-            value:{
-              type:"null",value:"null",
-              line:retType.name.line,
-              column:retType.name.column
-            }
-          });
-        }
-      } else misc.error("Stack functions aren't done yet :(",name);
+      //return variable
+      if(retType.name.value != "void"){
+        o.push({
+          type:"define",
+          valType:retType,
+          name:{
+            line:retType.name.line,
+            column:retType.name.column,
+            value:name.value+".return"
+          },
+          value:{
+            type:"null",value:"null",
+            line:retType.name.line,
+            column:retType.name.column
+          }
+        });
+      }
+      //parameters
+      for(let p of params){
+        o.push({
+          type:"define",
+          valType:p.type,
+          name:{
+            line:retType.name.line,
+            column:retType.name.column,
+            value:name.value+"."+p.name.value
+          },
+          value:{
+            type:"null",value:"null",
+            line:retType.name.line,
+            column:retType.name.column
+          }
+        });
+      }
       //return
       o.push({
         type:"function",stackless,retType,

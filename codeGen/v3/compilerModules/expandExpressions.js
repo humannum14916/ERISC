@@ -149,7 +149,7 @@ function backResolve(g,o,temps,exp,to,left=false){
 
     if(!slot)
       misc.error(`Struct type ${
-        typeStr(sType)
+        typeStr(struct.type)
       } does not have property ${
         exp.b.value.value
       }`,exp.b.value);

@@ -6,7 +6,7 @@ function valify(v){
   }
   if(v.type == "null"){
     v = 0;
-  } else if(v.type == "int" || v.type == "number"){
+  } else if(v.type == "bool" || v.type == "number"){
     v = v.value*1;
   } else if(v.type == "word"){
     v = v.value;
@@ -18,83 +18,87 @@ function valify(v){
 
 function stringifyF(f){
   let o = "";
-  if(!f.stackless){
-    //
-  } else {
-    //function definition
-    o += "!defU defF "+f.name.value+"\n\n";
-    //contents
-    for(let c of f.contents){
-      if(c.type == "asm"){
-        o += c.value.value;
-      } else if(c.type == "set"){
-        o += "TRS "+valify(c.value)+","+valify(c.dest);
-      } else if(c.type == "dereference"){
-        //ofset index
-        o += "TRS 0,ALU-C\n";
-        o += "TRS "+valify(c.thing)+",ALU-A\n";
-        o += "TRS "+valify(c.index)+",ALU-B\n";
-        o += "TRS ALU-O,$1\n";
-        o += "TRS #0,"+valify(c.to);
-      } else if(c.type == "op"){
-        //setup op
-        let op = {
-          "+":0,
-          "-":32,
-          ">":1,
-          "==":2,
-          "<":3,
-          "&":4,//TEMP
-          "~":5,//TEMP
-          "|":6,//TEMP
-          "!":(a,b,out)=>{
-            //bitwise not
-            o += "TRS 5,ALU-C\n";//TEMP
-            o += `TRS ${valify(a)},ALU-A\n`;
-            o += "TRS ALU-O,ALU-A\n";
-            //and off top
-            o += "TRS 4,ALU-C\n";//TEMP
-            o += "TRS 1,ALU-B\n";
-            o += `TRS ALU-O,${valify(out)}\n`;
-          }
-        }[c.opType];
-        if(op == undefined)
-          misc.error(`[Dev] Op ${c.opType} needs an ALU config!`);
-        if(typeof(op)=="number"){
-          o += "TRS "+op+",ALU-C\n";
-          //a
-          o += "TRS "+valify(c.a)+",ALU-A\n";
-          //b
-          if(c.b)
-            o += "TRS "+valify(c.b)+",ALU-B\n";
-          //o
-          o += "TRS ALU-O,"+valify(c.to);
-        } else {
-          op(c.a,c.b,c.to);
+  //function definition
+  o += "!defU defF "+f.name.value+"\n\n";
+  //contents
+  for(let c of f.contents){
+    if(c.type == "asm"){
+      o += c.value.value;
+    } else if(c.type == "set"){
+      o += "TRS "+valify(c.value)+","+valify(c.dest);
+    } else if(c.type == "dereference"){
+      //ofset index
+      o += "TRS 0,ALU-C\n";
+      o += "TRS "+valify(c.thing)+",ALU-A\n";
+      o += "TRS "+valify(c.index)+",ALU-B\n";
+      o += "TRS ALU-O,$1\n";
+      o += "TRS #0,"+valify(c.to);
+    } else if(c.type == "op"){
+      //setup op
+      let op = {
+        "+":0,
+        "-":32,
+        ">":1,
+        "==":2,
+        "<":3,
+        "&":4,//TEMP
+        "~":5,//TEMP
+        "|":6,//TEMP
+        "!":(a,b,out)=>{
+          //bitwise not
+          o += "TRS 5,ALU-C\n";//TEMP
+          o += `TRS ${valify(a)},ALU-A\n`;
+          o += "TRS ALU-O,ALU-A\n";
+          //and off top
+          o += "TRS 4,ALU-C\n";//TEMP
+          o += "TRS 1,ALU-B\n";
+          o += `TRS ALU-O,${valify(out)}\n`;
         }
-      } else if(c.type == "branch"){
-        if(c.condition){
-          o += "!defU cJump "+c.condition.value+" "+c.to;
-        } else {
-          o += "TRS "+c.to+",PC";
-        }
-      } else if(c.type == "lable"){
-        o += "LBL "+c.value;
-      } else if(c.type == "derefNset"){
-        //ofset index
-        o += "TRS 0,ALU-C\n";
-        o += "TRS "+valify(c.thing)+",ALU-A\n";
-        o += "TRS "+valify(c.index)+",ALU-B\n";
-        o += "TRS ALU-O,$2\n";
-        o += "TRS "+valify(c.value)+",#0";
-      } else if(c.type == "call"){
-        o += `!defU callF ${c.name}`;
+      }[c.opType];
+      if(op == undefined)
+        misc.error(`[Dev] Op ${c.opType} needs an ALU config!`);
+      if(typeof(op)=="number"){
+        o += "TRS "+op+",ALU-C\n";
+        //a
+        o += "TRS "+valify(c.a)+",ALU-A\n";
+        //b
+        if(c.b)
+          o += "TRS "+valify(c.b)+",ALU-B\n";
+        //o
+        o += "TRS ALU-O,"+valify(c.to);
+      } else {
+        op(c.a,c.b,c.to);
       }
-      o += "\n\n";
+    } else if(c.type == "branch"){
+      if(c.condition){
+        o += "!defU cJump "+c.condition.value+" "+c.to;
+      } else {
+        o += "TRS "+c.to+",PC";
+      }
+    } else if(c.type == "lable"){
+      o += "LBL "+c.value;
+    } else if(c.type == "derefNset"){
+      //ofset index
+      o += "TRS 0,ALU-C\n";
+      o += "TRS "+valify(c.thing)+",ALU-A\n";
+      o += "TRS "+valify(c.index)+",ALU-B\n";
+      o += "TRS ALU-O,$2\n";
+      o += "TRS "+valify(c.value)+",#0";
+    } else if(c.type == "call"){
+      let stackStuff = !f.stackless
+        && c.name != "__CreateStackFrame"
+        && c.name != "__FreeStackFrame";
+      if(stackStuff)
+        o += `!defU callF ${f.name.value+".__pushFrame"}\n`;
+      o += `!defU callF ${c.name}`;
+      if(stackStuff)
+        o += `\n!defU callF ${f.name.value+".__popFrame"}`;
     }
-    //definition termination
-    o += "!defU retF "+f.name.value;
+    o += "\n\n";
   }
+  //definition termination
+  if(f.stackless)
+    o += "!defU retF "+f.name.value;
   return o;
 }
 
