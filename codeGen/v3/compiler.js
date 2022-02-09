@@ -69,7 +69,7 @@ function compile(program,root,file){
         name:{value:st.name+"."+sn},
         value:{
           type:"number",
-          value:st.slots[sn].length
+          value:st.slots[sn].index
         }
       }];
     }).flat());
@@ -113,7 +113,7 @@ function compile(program,root,file){
     stringify.stringifyD(defines,structs);
   //build output
   let output = readFileSync(root+"headers/default");
-  //userspace header
+  //specified headers
   metadata.forEach(m=>{
     if(m.key.value == "header"){
       output = output+readFileSync(root+"headers/"+m.value.value);
