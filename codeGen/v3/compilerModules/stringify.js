@@ -6,7 +6,7 @@ function valify(v){
   }
   if(v.type == "null"){
     v = 0;
-  } else if(v.type == "int" || v.type == "number"){
+  } else if(v.type == "bool" || v.type == "number"){
     v = v.value*1;
   } else if(v.type == "word"){
     v = v.value;
