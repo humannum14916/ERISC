@@ -32,6 +32,11 @@ function stackless void init(
 function stackless int allocate(
   int length, int owner
 ){
+  //check for null owner
+  if(owner == 0){
+    Errors.nullOwner[0] = {char}length;
+    call Log.error(Errors.nullOwner);
+  };
   //find usable entry
   define heapEntry target = firstGap;
   while(
@@ -44,6 +49,7 @@ function stackless int allocate(
     target = target->nextGap;
     if(target == null){
       Errors.noMem[0] = {char}length;
+      Errors.noMem[1] = {char}totalAllocLen;
       call Log.error(Errors.noMem);
     };
   };
@@ -184,9 +190,11 @@ function stackless void free(heapEntry all){
 
 namespace Errors {
   define array[char] noMem =
-    "x <length>: Memory full - could not allocate slot of length <length>";
+    "xx <length><totalLen>: Memory full - could not allocate slot of length <length>, total allocated is <totalLen>";
   define array[char] memFilled =
     "Somehow, the allocatable area was perfectly filled";
+  define array[char] nullOwner =
+    "x <length>: Attempted allocation of length <length> had owner of 0";
 };
 
 
