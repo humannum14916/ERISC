@@ -278,6 +278,9 @@ function backResolveCallParams(g,o,temps,call,to){
   let f = g.function.filter(
     p=>{return p.name.value == call.name.value}
   )[0];
+
+  if(call.params.length != f.params.length)
+    misc.error(`Incorrect number of arguments passed to ${call.name.value}, expected ${f.params.length}, got ${call.params.length}`,call);
   
   //resolve params
   for(let i=0;i<call.params.length;i++){
