@@ -23,3 +23,15 @@ function stackless void MAIN(){
   //idle
   while(true){};
 };
+
+function stackless int __CreateStackFrame(
+  int length
+){
+  return = Memory.allocate(length,1);
+};
+
+function stackless int __FreeStackFrame(
+  int all
+){
+  call Memory.free({heapEntry}all);
+};
