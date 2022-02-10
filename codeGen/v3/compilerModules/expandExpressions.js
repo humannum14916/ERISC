@@ -289,7 +289,7 @@ function backResolveCallParams(g,o,call,to){
         typeStr(f.params[i].type)
       } for function param, got ${
         typeStr(param.type)
-      }`,call.params[i]);
+      }`,call.name);
     toFree.push(param.varN);
   }
 
