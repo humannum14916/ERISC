@@ -18,7 +18,7 @@ function stackless void MAIN(){
   );
 
   //initialize the memory allocator
-  call Memory.init(kernelLength,0xff00);
+  call Memory.init(kernelLength,0xf000);
 
   //idle
   while(true){};
