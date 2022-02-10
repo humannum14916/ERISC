@@ -8,6 +8,7 @@ function stackless void logStr(array[char] str){
 };
 
 function stackless void error(array[char] msg){
+  call logInt(10);
   call logStr(msg);
   while(true){};
 };
