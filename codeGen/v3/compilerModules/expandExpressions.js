@@ -290,7 +290,13 @@ function backResolveCallParams(g,o,call,to){
   }
 
   //add call
+  if(!f.stackless) o.push({type:"call",
+      name:f.name.value+".__pushFrame"
+    });
   o.push({type:"call",name:call.name.value});
+  if(!f.stackless) o.push({type:"call",
+      name:f.name.value+".__popFrame"
+    });
 
   //free temps
   toFree.forEach(tf=>{

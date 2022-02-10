@@ -85,14 +85,7 @@ function stringifyF(f){
       o += "TRS ALU-O,$2\n";
       o += "TRS "+valify(c.value)+",#0";
     } else if(c.type == "call"){
-      let stackStuff = !f.stackless
-        && c.name != "__CreateStackFrame"
-        && c.name != "__FreeStackFrame";
-      if(stackStuff)
-        o += `!defU callF ${f.name.value+".__pushFrame"}\n`;
       o += `!defU callF ${c.name}`;
-      if(stackStuff)
-        o += `\n!defU callF ${f.name.value+".__popFrame"}`;
     }
     o += "\n\n";
   }
