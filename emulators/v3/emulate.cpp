@@ -384,6 +384,7 @@ BusReturn tty_writeDevice(unsigned int adr, unsigned int data){
       c = "<"+decHex(data)+">";
     }
     cout << c;
+    cout.flush();
   }
   return default_return;
 }
