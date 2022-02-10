@@ -454,7 +454,16 @@ function compile(program,root,file){
   decomposeExpressions.decomposeExpressions(functions);
   //expand expressions
   for(let f of functions){
-    f.contents = expandExprs.expand(f,{define:defines,struct:structs,function:functions});
+    f.contents = expandExprs.expand(f,{
+      define:defines,
+      struct:structs,
+      function:functions,
+      temps:{
+        total:0,
+        template:"__COMPILER_TEMP_",
+        temps:[]
+      }
+    });
   }
   //stringify functions
   functions = 

@@ -4,10 +4,7 @@ function expand(f,g){
   //output list
   let o = [];
   //temp bin
-  let temps = {
-    total:0,template:"__COMPILER_TEMP_"
-    +f.name.value+"_",temps:[]
-  };
+  let temps = g.temps;
   //loop through contents
   for(let c of f.contents){
     if(c.type == "set"){
