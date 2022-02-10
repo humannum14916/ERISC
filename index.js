@@ -22,7 +22,7 @@ console.log = m=>{console.logO("[Driver] "+m)};
 
 async function buildEmu(p){
   await exec("clang++-7",[
-    "-pthread","-std=c++17","-o",
+    "-pthread","-std=c++17","-O3","-o",
     p,p+".cpp"
   ]);
 }
