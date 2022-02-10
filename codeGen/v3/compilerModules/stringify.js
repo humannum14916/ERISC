@@ -1,9 +1,6 @@
 const misc = require("./misc.js");
 
 function valify(v){
-  if(typeof(v.type)!="string"){
-    v.type = v.type.value || v.type.name;
-  }
   if(v.type == "null"){
     v = 0;
   } else if(v.type == "bool" || v.type == "number"){
