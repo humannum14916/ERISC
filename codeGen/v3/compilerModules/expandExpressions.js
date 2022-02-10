@@ -272,7 +272,7 @@ function backResolveCallParams(g,o,call,to){
   if(!f.stackless) paramPostfix = ".param";
 
   if(call.params.length != f.params.length)
-    misc.error(`Incorrect number of arguments passed to ${call.name.value}, expected ${f.params.length}, got ${call.params.length}`,call);
+    misc.error(`Incorrect number of arguments passed to ${call.name.value}, expected ${f.params.length}, got ${call.params.length}`,call.name);
   
   //resolve params
   for(let i=0;i<call.params.length;i++){
