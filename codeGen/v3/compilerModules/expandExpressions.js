@@ -268,6 +268,9 @@ function backResolveCallParams(g,o,call,to){
     p=>{return p.name.value == call.name.value}
   )[0];
 
+  let paramPostfix = "";
+  if(!f.stackless) paramPostfix = ".param";
+
   if(call.params.length != f.params.length)
     misc.error(`Incorrect number of arguments passed to ${call.name.value}, expected ${f.params.length}, got ${call.params.length}`,call);
   
@@ -278,6 +281,7 @@ function backResolveCallParams(g,o,call,to){
         type:"word",
         value:call.name.value + "."
           + f.params[i].name.value
+          + paramPostfix
       }
     );
     if(!compat(param.type,f.params[i].type))
@@ -290,10 +294,29 @@ function backResolveCallParams(g,o,call,to){
   }
 
   //add call
-  if(!f.stackless) o.push({type:"call",
+  if(!f.stackless){
+    //push into frame
+    o.push({type:"call",
       name:f.name.value+".__pushFrame"
     });
+    //update write params
+    f.params.forEach(p=>{
+      o.push({
+        type:"set",
+        dest:{
+          type:"word",
+          value:f.name.value+"."+p.name.value
+        },
+        value:{
+          type:"word",
+          value:f.name.value+"."+p.name.value+".param"
+        }
+      });
+    });
+  }
+  //call function
   o.push({type:"call",name:call.name.value});
+  //pop from frame
   if(!f.stackless) o.push({type:"call",
       name:f.name.value+".__popFrame"
     });
