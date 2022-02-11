@@ -1,9 +1,6 @@
 const misc = require("./misc.js");
 
 function valify(v){
-  if(typeof(v.type)!="string"){
-    v.type = v.type.value || v.type.name;
-  }
   if(v.type == "null"){
     v = 0;
   } else if(v.type == "bool" || v.type == "number"){
@@ -85,14 +82,7 @@ function stringifyF(f){
       o += "TRS ALU-O,$2\n";
       o += "TRS "+valify(c.value)+",#0";
     } else if(c.type == "call"){
-      let stackStuff = !f.stackless
-        && c.name != "__CreateStackFrame"
-        && c.name != "__FreeStackFrame";
-      if(stackStuff)
-        o += `!defU callF ${f.name.value+".__pushFrame"}\n`;
       o += `!defU callF ${c.name}`;
-      if(stackStuff)
-        o += `\n!defU callF ${f.name.value+".__popFrame"}`;
     }
     o += "\n\n";
   }

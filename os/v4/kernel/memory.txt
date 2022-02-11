@@ -13,13 +13,18 @@ struct heapEntry {
 
 define heapEntry firstGap = null;
 
+define int totalAllocLen = 0;
+define int totalOverhead = 0;
+define int availableMem = 0;
+
 
 function stackless void init(
   int heapMin, int heapMax
 ){
+  availableMem = heapMax - heapMin;
   firstGap = {heapEntry}heapMin;
   firstGap->len =
-    (heapMax - heapMin) - heapEntry.length;
+    availableMem - heapEntry.length;
   firstGap->next = null;
   firstGap->prev = null;
   firstGap->nextGap = null;
@@ -30,6 +35,11 @@ function stackless void init(
 function stackless int allocate(
   int length, int owner
 ){
+  //check for null owner
+  if(owner == 0){
+    call Errors.nullOwner(length);
+  };
+
   //find usable entry
   define heapEntry target = firstGap;
   while(
@@ -37,12 +47,11 @@ function stackless int allocate(
     target->len <
     length + heapEntry.length
     //perfect fill
-    | target->len == length
+    & target->len != length
   ){
     target = target->nextGap;
     if(target == null){
-      Errors.noMem[0] = {char}length;
-      call Log.error(Errors.noMem);
+      call Errors.unableToAlloc(length,owner);
     };
   };
 
@@ -86,7 +95,7 @@ function stackless int allocate(
     } else {
       firstGap = target->nextGap;
       if(target->nextGap == null){
-        call Log.error(Errors.memFilled);
+        call Errors.pFilled(length,owner);
       };
     };
   };
@@ -97,6 +106,10 @@ function stackless int allocate(
   //update owner
   target->owner = owner;
 
+  //update stats
+  totalAllocLen = totalAllocLen + length;
+  totalOverhead = totalOverhead + heapEntry.length;
+
   //return
   return = ({int}target) + heapEntry.length;
 };
@@ -104,6 +117,10 @@ function stackless int allocate(
 function stackless void free(heapEntry all){
   all = {heapEntry}({int}all - heapEntry.length);
   all->owner = 0;
+
+  //update stats
+  totalAllocLen = totalAllocLen - all->len;
+  totalOverhead = totalOverhead - heapEntry.length;
 
   define bool gapListUpdateRequired = true;
 
@@ -175,10 +192,58 @@ function stackless void free(heapEntry all){
 
 
 namespace Errors {
-  define array[char] noMem =
-    "x <length>: Memory full - could not allocate slot of length <length>";
-  define array[char] memFilled =
-    "Somehow, the allocatable area was perfectly filled";
+  function stackless void unableToAlloc(
+    int length, int owner
+  ){
+    unableMR[0] = length;
+    unableMR[1] = owner;
+    call Log.printf(unableM,unableMR);
+    call stats();
+    call hang();
+  };
+  define array[char] unableM =
+    "\nMemory full - could not allocate slot of length % for owner %\n";
+  define array[int] unableMR = 2;
+
+  function stackless void pFilled(
+    int length, int owner
+  ){
+    filledMR[0] = length;
+    filledMR[1] = owner;
+    call Log.printf(filledM,filledMR);
+    call stats();
+    call hang();
+  };
+  define array[char] filledM =
+    "\nMemory perfectly filled! - could not allocate slot of length % for owner %\n";
+  define array[int] filledMR = 2;
+
+  function stackless void nullOwner(
+    int length
+  ){
+    nullOwnerMR[0] = length;
+    call Log.printf(nullOwnerM,nullOwnerMR);
+    call stats();
+    call hang();
+  };
+
+  define array[char] nullOwnerM =
+    "Attempted allocation of length % had owner of null";
+  define array[int] nullOwnerMR = 1;
+
+  function stackless void stats(){
+    define int totalUsed = null;
+    totalUsed = totalAllocLen + totalOverhead;
+    statsMR[0] = totalAllocLen;
+    statsMR[1] = totalOverhead;
+    statsMR[2] = availableMem - totalUsed;
+    statsMR[3] = totalUsed;
+    statsMR[4] = availableMem;
+    call Log.printf(statsM,statsMR);
+  };
+  define array[char] statsM =
+    "Allocator stats:\n  Allocated: % words\n  Overhead: % words\n  Free: % words\n  Used: %/% words\n";
+  define array[int] statsMR = 5;
 };
 
 

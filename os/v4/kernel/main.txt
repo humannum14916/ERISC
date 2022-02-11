@@ -18,8 +18,26 @@ function stackless void MAIN(){
   );
 
   //initialize the memory allocator
-  call Memory.init(kernelLength,0xff00);
+  call Memory.init(kernelLength,0xf000);
 
   //idle
+  call hang();
+};
+
+function stackless int __CreateStackFrame(
+  int length
+){
+  return = Memory.allocate(length,1);
+};
+
+function stackless int __FreeStackFrame(
+  int all
+){
+  call Memory.free({heapEntry}all);
+};
+
+function stackless void hang(){
+  call Log.logStr(hangMsg);
   while(true){};
 };
+define array[char] hangMsg = "Doing nothing forever...\n";

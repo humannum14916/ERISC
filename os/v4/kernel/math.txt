@@ -18,4 +18,12 @@ function stackless int mult(int a, int b){
   };
 };
 
+function stackless int div(int a, int b){
+  return = 0;
+  while(!(a < b)){
+    return = return + 1;
+    a = a - b;
+  };
+};
+
 };

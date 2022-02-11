@@ -3,19 +3,14 @@ const misc = require("./misc.js");
 function expand(f,g){
   //output list
   let o = [];
-  //temp bin
-  let temps = {
-    total:0,template:"__COMPILER_TEMP_"
-    +f.name.value+"_",temps:[]
-  };
   //loop through contents
   for(let c of f.contents){
     if(c.type == "set"){
       let dest = backResolve(
-        g,o,temps,c.dest,null,true
+        g,o,c.dest,null,true
       );
       let source = backResolve(
-        g,o,temps,c.exp,dest.varN
+        g,o,c.exp,dest.varN
       );
       if(!compat(source.type,dest.type)){
         misc.error(`Cannot write type ${
@@ -25,20 +20,20 @@ function expand(f,g){
         }`,c);
       }
       o = o.concat(dest.write(source.varN));
-      freeTemp(temps,source.varN);
+      freeTemp(g,source.varN);
       dest.temps.forEach(t=>{
-        freeTemp(temps,t);
+        freeTemp(g,t);
       });
     } else if(c.type == "branch" && c.condition){
-      let cond = backResolve(g,o,temps,c.condition);
+      let cond = backResolve(g,o,c.condition);
       if(!compat(cond.type,{name:{value:"bool"}}))
         misc.error("Expected type bool for branch condition, got "+typeStr(cond.type),c.condition);
       c.condition = cond.varN;
       o.push(c);
-      freeTemp(temps,cond.varN);
+      freeTemp(g,cond.varN);
     } else if(c.type == "call"){
-      let call = backResolveCallParams(g,o,temps,c);
-      freeTemp(temps,call.varN);
+      let call = backResolveCallParams(g,o,c);
+      freeTemp(g,call.varN);
     } else {
       o.push(c);
     }
@@ -47,16 +42,16 @@ function expand(f,g){
   return o;
 }
 
-function backResolve(g,o,temps,exp,to,left=false){
+function backResolve(g,o,exp,to,left=false){
   //operation
   if(exp.type == "access"){
     //back resolve thing
     let thing = backResolve(
-      g,o,temps,exp.thing
+      g,o,exp.thing
     );
     //back resolve index
     let index = backResolve(
-      g,o,temps,exp.index
+      g,o,exp.index
     );
     //check that the type is dereferencable
     if(!thing.type.subType)
@@ -76,13 +71,11 @@ function backResolve(g,o,temps,exp,to,left=false){
     }
     //get destination
     if(!to){
-      to = {type:"word",value:getTemp(
-        g,temps
-      )};
+      to = {type:"word",value:getTemp(g)};
     }
     //free temps
-    freeTemp(temps,thing);
-    freeTemp(temps,index);
+    freeTemp(g,thing);
+    freeTemp(g,index);
     //add
     o.push({
       type:"dereference",
@@ -94,7 +87,7 @@ function backResolve(g,o,temps,exp,to,left=false){
     if(left) misc.error("Cannot use function call as set dest",exp.name.value);
     //resolve call
     exp.name = exp.name.value;
-    return backResolveCallParams(g,o,temps,exp,to);
+    return backResolveCallParams(g,o,exp,to);
   } else if(exp.type == "value"){
     if(left){
       if(exp.value.type != "word")
@@ -120,7 +113,7 @@ function backResolve(g,o,temps,exp,to,left=false){
     };
   } else if(exp.type == "cast"){
     //resolve target
-    let target = backResolve(g,o,temps,exp.target,to,left);
+    let target = backResolve(g,o,exp.target,to,left);
     target.type = exp.toType;
     return target;
   } else if(exp.type == "->"){
@@ -132,7 +125,7 @@ function backResolve(g,o,temps,exp,to,left=false){
     }
     
     //back resolve struct
-    let struct = backResolve(g,o,temps,exp.a);
+    let struct = backResolve(g,o,exp.a);
 
     //get struct type
     let sType = g.struct.filter(s=>{
@@ -174,12 +167,10 @@ function backResolve(g,o,temps,exp,to,left=false){
     }
     //get destination
     if(!to){
-      to = {type:"word",value:getTemp(
-        g,temps
-      )};
+      to = {type:"word",value:getTemp(g)};
     }
     //free temps
-    freeTemp(temps,struct.varN);
+    freeTemp(g,struct.varN);
     //add
     o.push({
       type:"dereference",
@@ -192,13 +183,13 @@ function backResolve(g,o,temps,exp,to,left=false){
     }
     //resolve a
     let a = backResolve(
-      g,o,temps,exp.a
+      g,o,exp.a
     );
     //resolve b
     let b;
     if(exp.b){
       b = backResolve(
-        g,o,temps,exp.b
+        g,o,exp.b
       );
     }
     //get types
@@ -255,9 +246,7 @@ function backResolve(g,o,temps,exp,to,left=false){
       outType = {name:{type:"word",value:at}};
     //get destination
     if(!to){
-      to = {type:"word",value:getTemp(
-        g,temps
-      )};
+      to = {type:"word",value:getTemp(g)};
     }
     //add
     o.push({
@@ -266,26 +255,33 @@ function backResolve(g,o,temps,exp,to,left=false){
       a:a.varN,b:(b||{}).varN,to
     });
     //free temps
-    freeTemp(temps,a.varN);
-    if(b) freeTemp(temps,b.varN);
+    freeTemp(g,a.varN);
+    if(b) freeTemp(g,b.varN);
     //return
     return {varN:to,type:outType};
   }
 }
 
-function backResolveCallParams(g,o,temps,call,to){
+function backResolveCallParams(g,o,call,to){
   let toFree = [];
   let f = g.function.filter(
     p=>{return p.name.value == call.name.value}
   )[0];
+
+  let paramPostfix = "";
+  if(!f.stackless) paramPostfix = ".param";
+
+  if(call.params.length != f.params.length)
+    misc.error(`Incorrect number of arguments passed to ${call.name.value}, expected ${f.params.length}, got ${call.params.length}`,call.name);
   
   //resolve params
   for(let i=0;i<call.params.length;i++){
     let param = backResolve(
-      g,o,temps,call.params[i],{
+      g,o,call.params[i],{
         type:"word",
         value:call.name.value + "."
           + f.params[i].name.value
+          + paramPostfix
       }
     );
     if(!compat(param.type,f.params[i].type))
@@ -293,16 +289,41 @@ function backResolveCallParams(g,o,temps,call,to){
         typeStr(f.params[i].type)
       } for function param, got ${
         typeStr(param.type)
-      }`,call.params[i]);
+      }`,call.name);
     toFree.push(param.varN);
   }
 
   //add call
+  if(!f.stackless){
+    //push into frame
+    o.push({type:"call",
+      name:f.name.value+".__pushFrame"
+    });
+    //update write params
+    f.params.forEach(p=>{
+      o.push({
+        type:"set",
+        dest:{
+          type:"word",
+          value:f.name.value+"."+p.name.value
+        },
+        value:{
+          type:"word",
+          value:f.name.value+"."+p.name.value+".param"
+        }
+      });
+    });
+  }
+  //call function
   o.push({type:"call",name:call.name.value});
+  //pop from frame
+  if(!f.stackless) o.push({type:"call",
+      name:f.name.value+".__popFrame"
+    });
 
   //free temps
   toFree.forEach(tf=>{
-    freeTemp(temps,tf);
+    freeTemp(g,tf);
   });
 
   //move return
@@ -327,31 +348,31 @@ function typeStr(t){
   return o;
 }
 
-function getTemp(g,temps){
+function getTemp(g){
   //check for temp
-  if(temps.temps.length == 0){
+  if(g.temps.temps.length == 0){
     //create new temp
-    temps.temps.push(
-      temps.template+temps.total
+    g.temps.temps.push(
+      g.temps.template+g.temps.total
     );
-    temps.total++;
+    g.temps.total++;
     //add temp definition
-    g.define[temps.temps[temps.temps.length-1]] = {
+    g.define[g.temps.temps[g.temps.temps.length-1]] = {
       valType:{name:"any"},
       value:{type:"null",value:null}
     };
   }
   //return temp
-  return temps.temps.shift();
+  return g.temps.temps.shift();
 }
 
-function freeTemp(temps,v){
+function freeTemp(g,v){
   if(
     v.type == "word" &&
     v.value.indexOf("__COMPILER_TEMP_") == 0)
   {
-    temps.temps.push(v.value);
-    temps.freed++;
+    g.temps.temps.push(v.value);
+    g.temps.freed++;
   }
 }
 

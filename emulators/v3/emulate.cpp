@@ -29,7 +29,6 @@ void pc_setPC(bool interrupt);
 void log(unsigned int m);
 string decHex(unsigned int v);
 void refreshDisplay();
-void tty_scroll();
 
 //type declarations
 struct BusReturn {
@@ -78,8 +77,6 @@ unsigned int disk_dest = 0;
 unsigned int disk_transferScan = 0;
 bool disk_inTransfer = false;
 unsigned int lcd_status = 0;
-string tty_lines[16];
-int tty_columns = 48;
 string keyboard_buffer = "";
 
 //Bus devices
@@ -201,40 +198,8 @@ BusReturn lcd_readDevice(unsigned int adr){
 BusReturn lcd_writeDevice(unsigned int adr, unsigned int data){
   if(adr == 0xfff9){
     lcd_status = data;
-    refreshDisplay();
   }
   return default_return;
-}
-void lcd_refreshDisplay(){
-  string status;
-  if(lcd_status == 0x0){
-    status = "Uninitialized";
-  } else if(lcd_status == 0x1){
-    status = "Working";
-  } else if(lcd_status == 0x2){
-    status = "Idle";
-  } else if(lcd_status == 0x3){
-    status = "Loading Program";
-  } else if(lcd_status == 0x4){
-    status = "Loading Data";
-  } else if(lcd_status == 0x5){
-    status = "Halted";
-  } else if(lcd_status == 0xffff){
-    status = "Induced Crash";
-  } else if(lcd_status == 0xfffe){
-    status = "EvalPath - Not Directory Error";
-  } else if(lcd_status == 0xfffd){
-    status = "EvalPath - Not Found Error";
-  } else if(lcd_status == 0xfffc){
-    status = "KernelFunction - Not Found Error";
-  } else {
-    status = decHex(lcd_status);
-  }
-  log(
-    "-----\nStatus: "
-    +decHex(lcd_status)
-    +" ("+status+")"
-  );
 }
 //Bus Firewall
 bool busFirewall_checkActive(){
@@ -414,34 +379,14 @@ BusReturn tty_writeDevice(unsigned int adr, unsigned int data){
     if(data - 32 < 95){
       c = ascii[data - 32];
     } else if(data == 10){
-      c = "";
-      tty_scroll();
+      c = "\n";
     } else {
       c = "<"+decHex(data)+">";
     }
-    //check for overflow
-    if(tty_lines[0].length() == tty_columns){
-      tty_scroll();
-    }
-    //add character
-    tty_lines[0] += c;
-    //update display
-    refreshDisplay();
+    cout << c;
+    cout.flush();
   }
   return default_return;
-}
-void tty_scroll(){
-  //move lines
-  for(int i=15;i>0;i--){
-    tty_lines[i] = tty_lines[i-1];
-  }
-  //add new line
-  tty_lines[0] = "";
-}
-void tty_refreshDisplay(){
-  for(int i=15;i>=0;i--){
-    log(tty_lines[i]);
-  }
 }
 //Keyboard
 BusReturn keyboard_readDevice(unsigned int adr){
@@ -706,15 +651,6 @@ void historyEdit(string m){
 
 void noBusMaster(){
   error("No bus master");
-}
-
-void refreshDisplay(){
-  //clear
-  system("clear");
-  //tty
-  tty_refreshDisplay();
-  //lcd
-  lcd_refreshDisplay();
 }
 
 //Utilites
