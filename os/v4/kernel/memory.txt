@@ -37,8 +37,7 @@ function stackless int allocate(
 ){
   //check for null owner
   if(owner == 0){
-    Errors.nullOwner[0] = {char}length;
-    call Log.error(Errors.nullOwner);
+    call Errors.nullOwner(length);
   };
 
   //find usable entry
@@ -52,12 +51,7 @@ function stackless int allocate(
   ){
     target = target->nextGap;
     if(target == null){
-      Errors.noMem[0] = {char}length;
-      if(totalAllocLen == 0){
-        totalAllocLen = {int}"0";
-      };
-      Errors.noMem[1] = {char}totalAllocLen;
-      call Log.error(Errors.noMem);
+      call Errors.unableToAlloc(length,owner);
     };
   };
 
@@ -101,7 +95,7 @@ function stackless int allocate(
     } else {
       firstGap = target->nextGap;
       if(target->nextGap == null){
-        call Log.error(Errors.memPFilled);
+        call Errors.pFilled(length,owner);
       };
     };
   };
@@ -198,12 +192,58 @@ function stackless void free(heapEntry all){
 
 
 namespace Errors {
-  define array[char] noMem =
-    "xx <length><totalLen>: Memory full - could not allocate slot of length <length>, total allocated is <totalLen>";
-  define array[char] memPFilled =
-    "Somehow, the allocatable area was perfectly filled";
-  define array[char] nullOwner =
-    "x <length>: Attempted allocation of length <length> had owner of 0";
+  function stackless void unableToAlloc(
+    int length, int owner
+  ){
+    unableMR[0] = length;
+    unableMR[1] = owner;
+    call Log.printf(unableM,unableMR);
+    call stats();
+    call hang();
+  };
+  define array[char] unableM =
+    "\nMemory full - could not allocate slot of length % for owner %\n";
+  define array[int] unableMR = 2;
+
+  function stackless void pFilled(
+    int length, int owner
+  ){
+    filledMR[0] = length;
+    filledMR[1] = owner;
+    call Log.printf(filledM,filledMR);
+    call stats();
+    call hang();
+  };
+  define array[char] filledM =
+    "\nMemory perfectly filled! - could not allocate slot of length % for owner %\n";
+  define array[int] filledMR = 2;
+
+  function stackless void nullOwner(
+    int length
+  ){
+    nullOwnerMR[0] = length;
+    call Log.printf(nullOwnerM,nullOwnerMR);
+    call stats();
+    call hang();
+  };
+
+  define array[char] nullOwnerM =
+    "Attempted allocation of length % had owner of null";
+  define array[int] nullOwnerMR = 1;
+
+  function stackless void stats(){
+    define int totalUsed = null;
+    totalUsed = totalAllocLen + totalOverhead;
+    statsMR[0] = totalAllocLen;
+    statsMR[1] = totalOverhead;
+    statsMR[2] = availableMem - totalUsed;
+    statsMR[3] = totalUsed;
+    statsMR[4] = availableMem;
+    call Log.printf(statsM,statsMR);
+  };
+  define array[char] statsM =
+    "Allocator stats:\n  Allocated: %\n  Overhead: %\n  Free: %\n  Used: %/%\n";
+  define array[int] statsMR = 5;
 };
 
 
