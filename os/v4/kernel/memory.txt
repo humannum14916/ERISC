@@ -14,14 +14,17 @@ struct heapEntry {
 define heapEntry firstGap = null;
 
 define int totalAllocLen = 0;
+define int totalOverhead = 0;
+define int availableMem = 0;
 
 
 function stackless void init(
   int heapMin, int heapMax
 ){
+  availableMem = heapMax - heapMin;
   firstGap = {heapEntry}heapMin;
   firstGap->len =
-    (heapMax - heapMin) - heapEntry.length;
+    availableMem - heapEntry.length;
   firstGap->next = null;
   firstGap->prev = null;
   firstGap->nextGap = null;
@@ -109,8 +112,9 @@ function stackless int allocate(
   //update owner
   target->owner = owner;
 
-  //update total allocated memory
+  //update stats
   totalAllocLen = totalAllocLen + length;
+  totalOverhead = totalOverhead + heapEntry.length;
 
   //return
   return = ({int}target) + heapEntry.length;
@@ -120,8 +124,9 @@ function stackless void free(heapEntry all){
   all = {heapEntry}({int}all - heapEntry.length);
   all->owner = 0;
 
-  //update total allocated memory
+  //update stats
   totalAllocLen = totalAllocLen - all->len;
+  totalOverhead = totalOverhead - heapEntry.length;
 
   define bool gapListUpdateRequired = true;
 
