@@ -7,6 +7,20 @@ function stackless void logStr(array[char] str){
   };
 };
 
+function stackless void printf(
+  array[char] msg, array[int] reps
+) {
+  define int ri = 0;
+  for(define int i=0;msg[i]!=null;i=i+1){
+    if(msg[i] == "%"){
+      call logInt(reps[ri]);
+      ri = ri + 1;
+    } else {
+      call logChar(msg[i]);
+    };
+  };
+};
+
 function stackless void error(array[char] msg){
   call logInt(10);
   call logStr(msg);
