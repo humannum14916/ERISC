@@ -242,7 +242,7 @@ namespace Errors {
     call Log.printf(statsM,statsMR);
   };
   define array[char] statsM =
-    "Allocator stats:\n  Allocated: %\n  Overhead: %\n  Free: %\n  Used: %/%\n";
+    "Allocator stats:\n  Allocated: % words\n  Overhead: % words\n  Free: % words\n  Used: %/% words\n";
   define array[int] statsMR = 5;
 };
 
