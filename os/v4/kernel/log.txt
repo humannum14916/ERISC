@@ -26,7 +26,27 @@ function stackless void logChar(char c){
 };
 
 function stackless void logInt(int i){
-  asm "TRS Log.logInt.i,TTY";
+  //get highest digit
+  define int maxL = 1;
+  define int max = 1;
+  while(maxL < i | maxL == i){
+    max = maxL;
+    maxL = Math.mult(maxL,10);
+  };
+  //convert
+  define bool working = true;
+  while(working){
+    define int curD = 0;
+    while(!(i < max)){
+      curD = curD + 1;
+      i = i - max;
+    };
+    call Log.logChar({char}(curD + 48));
+    if(max == 1){
+      working = false;
+    };
+    max = Math.div(max,10);
+  };
 };
 
 };
