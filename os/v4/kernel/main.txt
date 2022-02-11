@@ -21,7 +21,7 @@ function stackless void MAIN(){
   call Memory.init(kernelLength,0xf000);
 
   //idle
-  while(true){};
+  call hang();
 };
 
 function stackless int __CreateStackFrame(
@@ -34,4 +34,8 @@ function stackless int __FreeStackFrame(
   int all
 ){
   call Memory.free({heapEntry}all);
+};
+
+function stackless void hang(){
+  while(true){};
 };
