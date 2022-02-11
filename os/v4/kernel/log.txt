@@ -21,12 +21,6 @@ function stackless void printf(
   };
 };
 
-function stackless void error(array[char] msg){
-  call logInt(10);
-  call logStr(msg);
-  while(true){};
-};
-
 function stackless void logChar(char c){
   asm "TRS Log.logChar.c,TTY";
 };
