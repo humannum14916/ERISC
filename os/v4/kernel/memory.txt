@@ -45,7 +45,7 @@ function stackless int allocate(
     target->len <
     length + heapEntry.length
     //perfect fill
-    | target->len == length
+    & target->len != length
   ){
     target = target->nextGap;
     if(target == null){
