@@ -37,5 +37,7 @@ function stackless int __FreeStackFrame(
 };
 
 function stackless void hang(){
+  call Log.logStr(hangMsg);
   while(true){};
 };
+define array[char] hangMsg = "Doing nothing forever...\n";
