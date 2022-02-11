@@ -50,6 +50,9 @@ function stackless int allocate(
     target = target->nextGap;
     if(target == null){
       Errors.noMem[0] = {char}length;
+      if(totalAllocLen == 0){
+        totalAllocLen = {int}"0";
+      };
       Errors.noMem[1] = {char}totalAllocLen;
       call Log.error(Errors.noMem);
     };
